@@ -1,0 +1,83 @@
+{
+    "name": "zenstack-pinia-colada",
+    "version": "0.1.0",
+    "description": "Pinia Colada Client for consuming ZenStack v3's CRUD service",
+    "main": "./dist/vue.cjs",
+    "module": "./dist/vue.js",
+    "types": "./dist/vue.d.ts",
+    "type": "module",
+    "scripts": {
+        "build": "tsc --noEmit && tsup && pnpm test:generate && pnpm test:typecheck",
+        "watch": "tsup --watch",
+        "lint": "eslint src --ext ts",
+        "test": "vitest run",
+        "pack": "pnpm pack",
+        "test:generate": "tsx scripts/generate.ts",
+        "test:typecheck": "tsc --noEmit --project tsconfig.test.json"
+    },
+    "keywords": [
+        "zenstack",
+        "pinia-colada",
+        "pinia",
+        "vue",
+        "orm",
+        "fullstack",
+        "data-fetching"
+    ],
+    "author": "ZenStack Team",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zenstackhq/zenstack-pinia-colada.git"
+    },
+    "exports": {
+        "./vue": {
+            "import": {
+                "types": "./dist/vue.d.ts",
+                "default": "./dist/vue.js"
+            },
+            "require": {
+                "types": "./dist/vue.d.cts",
+                "default": "./dist/vue.cjs"
+            }
+        },
+        "./package.json": {
+            "import": "./package.json",
+            "require": "./package.json"
+        }
+    },
+    "dependencies": {
+        "@zenstackhq/common-helpers": "^3.0.0-beta.17",
+        "@zenstackhq/orm": "^3.0.0-beta.17",
+        "@zenstackhq/schema": "^3.0.0-beta.17",
+        "decimal.js": "^10.4.3",
+        "superjson": "^2.2.3"
+    },
+    "devDependencies": {
+        "@pinia/colada": "^0.13.2",
+        "@testing-library/dom": "^10.4.1",
+        "@types/node": "^20.17.24",
+        "@zenstackhq/language": "^3.0.0-beta.17",
+        "@zenstackhq/sdk": "^3.0.0-beta.17",
+        "eslint": "~9.29.0",
+        "glob": "^11.0.0",
+        "happy-dom": "^20.0.10",
+        "nock": "^14.0.10",
+        "pinia": "^2.3.0",
+        "tsup": "^8.5.0",
+        "tsx": "^4.20.3",
+        "typescript": "^5.8.0",
+        "vitest": "^3.2.4",
+        "vue": "^3.5.22"
+    },
+    "peerDependencies": {
+        "@pinia/colada": "^0.10.0",
+        "pinia": "^2.0.0",
+        "vue": "^3.0.0"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ]
+}
