@@ -76,8 +76,8 @@
     "vue": "^3.5.24"
   },
   "peerDependencies": {
-    "@pinia/colada": "^0.10.0",
-    "pinia": "^2.0.0",
+    "@pinia/colada": ">=0.10.0 <1.0.0",
+    "pinia": "^3.0.0",
     "vue": "^3.0.0"
   },
   "files": [
