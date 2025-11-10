@@ -55,10 +55,10 @@ app.mount('#app')
 
 ### 2. Provide Query Settings (Optional)
 
-```typescript
-// App.vue or layout component
+```vue
+<!-- App.vue or layout component -->
 <script setup lang="ts">
-import { provideQuerySettingsContext } from 'zenstack-pinia-colada/vue'
+import { provideQuerySettingsContext } from 'zenstack-pinia-colada'
 
 provideQuerySettingsContext({
   endpoint: '/api/model', // default endpoint
@@ -71,13 +71,13 @@ provideQuerySettingsContext({
 
 ```vue
 <script setup lang="ts">
-import { useClientQueries } from 'zenstack-pinia-colada/vue'
+import { useClientQueries } from 'zenstack-pinia-colada'
 import { schema } from './zenstack/schema-lite'
 
 const queries = useClientQueries(schema)
 
 // Query data
-const { data: users, isPending, error } = queries.user.useFindMany()
+const { data: users, status, error } = queries.user.useFindMany()
 
 // Mutations
 const createUser = queries.user.useCreate()
@@ -94,7 +94,7 @@ const handleCreateUser = () => {
 
 <template>
   <div>
-    <div v-if="isPending">Loading...</div>
+    <div v-if="status === 'pending'">Loading...</div>
     <div v-else-if="error">Error: {{ error.message }}</div>
     <ul v-else>
       <li v-for="user in users" :key="user.id">
@@ -102,7 +102,12 @@ const handleCreateUser = () => {
       </li>
     </ul>
 
-    <button @click="handleCreateUser">Create User</button>
+    <button
+      @click="handleCreateUser"
+      :disabled="createUser.status === 'pending'"
+    >
+      Create User
+    </button>
   </div>
 </template>
 ```
@@ -116,9 +121,21 @@ Each model in your schema gets the following query hooks:
 - `useFindUnique(args, options)` - Find a unique record
 - `useFindFirst(args, options)` - Find the first matching record
 - `useFindMany(args, options)` - Find multiple records
+- `useInfiniteFindMany(args, options)` - Paginated query with infinite loading
 - `useCount(args, options)` - Count records
 - `useAggregate(args, options)` - Aggregate data
 - `useGroupBy(args, options)` - Group records
+
+**Query Return Values:**
+```typescript
+{
+  data: Ref<T | undefined>,      // Query data
+  error: Ref<Error | null>,      // Error if query failed
+  status: Ref<'pending' | 'success' | 'error'>,  // Query status
+  refresh: () => Promise<void>,  // Manually refetch
+  // ... and more from Pinia Colada
+}
+```
 
 ### Mutation Hooks
 
@@ -134,9 +151,23 @@ Each model gets these mutation hooks:
 - `useDelete(options)` - Delete a record
 - `useDeleteMany(options)` - Delete multiple records
 
+**Mutation Return Values:**
+```typescript
+{
+  mutate: (variables: T) => void,        // Trigger mutation
+  mutateAsync: (variables: T) => Promise<R>,  // Async mutation
+  status: Ref<'pending' | 'success' | 'error' | 'idle'>,
+  data: Ref<R | undefined>,              // Mutation result
+  error: Ref<Error | null>,              // Error if mutation failed
+  // ... and more from Pinia Colada
+}
+```
+
 ## Advanced Features
 
 ### Optimistic Updates
+
+Optimistic updates allow the UI to update immediately before the server responds:
 
 ```typescript
 const updatePost = queries.post.useUpdate({
@@ -147,22 +178,46 @@ updatePost.mutate({
   where: { id: '1' },
   data: { title: 'New Title' }
 })
+// UI updates immediately, then syncs with server response
 ```
 
 ### Custom Query Options
+
+Pinia Colada provides many options to customize query behavior:
 
 ```typescript
 const { data } = queries.post.useFindMany(
   { where: { published: true } },
   {
     staleTime: 5000, // Consider data fresh for 5 seconds
+    gcTime: 300000,  // Garbage collection time (default: 5 minutes)
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    enabled: computed(() => isReady.value), // Conditionally enable
   }
 )
 ```
 
+### Infinite Queries (Pagination)
+
+For paginated data with infinite scrolling:
+
+```typescript
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  queries.post.useInfiniteFindMany(
+    { take: 10, where: { published: true } },
+    {
+      getNextPageParam: (lastPage, pages) => {
+        // Return the cursor for the next page
+        return lastPage.length === 10 ? pages.length * 10 : undefined
+      }
+    }
+  )
+```
+
 ### Disable Auto Invalidation
+
+By default, mutations automatically invalidate related queries. You can disable this:
 
 ```typescript
 const createPost = queries.post.useCreate({
@@ -189,9 +244,16 @@ const { data: user } = queries.user.useFindUnique({
 If you're familiar with `@zenstackhq/tanstack-query`, the Pinia Colada client offers:
 
 - 🎯 **Vue-first design** - Built specifically for Vue 3 composition API
-- 📦 **Smaller bundle** - Tree-shakeable with minimal dependencies
-- 🔧 **Simpler API** - Less configuration needed
+- 📦 **Smaller bundle** - Tree-shakeable ESM-only package
+- 🔧 **Simpler API** - Less configuration, sensible defaults
 - 🏪 **Pinia integration** - Works seamlessly with your Pinia store
+- ⚡️ **Better performance** - Optimized for Vue's reactivity system
+
+**Key API Differences:**
+- Returns Vue `Ref` objects instead of plain values
+- Uses `status` instead of separate `isLoading`, `isSuccess` flags
+- `refresh()` instead of `refetch()` for manual updates
+- Direct integration with Pinia's state management
 
 ## Contributing
 
@@ -205,4 +267,4 @@ MIT
 
 - [ZenStack Documentation](https://zenstack.dev/docs)
 - [Pinia Colada Documentation](https://pinia-colada.esm.dev/)
-- [GitHub Repository](https://github.com/zenstackhq/zenstack-pinia-colada)
+- [GitHub Repository](https://github.com/genu/zenstack-pinia-colada)
