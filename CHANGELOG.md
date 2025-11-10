@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.2
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.1...v0.1.2)
+
+### 🩹 Fixes
+
+- Update peerDependencies for @pinia/colada and pinia versions ([951bcfd](https://github.com/genu/zenstack-pinia-colada/commit/951bcfd))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.1
 
 
