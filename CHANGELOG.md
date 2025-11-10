@@ -1,0 +1,19 @@
+# Changelog
+
+
+## v0.1.1
+
+
+### 🩹 Fixes
+
+- Update import paths and query handling in README.md ([12fdf55](https://github.com/genu/zenstack-pinia-colada/commit/12fdf55))
+
+### 🏡 Chore
+
+- Initial commit ([a3c2e3a](https://github.com/genu/zenstack-pinia-colada/commit/a3c2e3a))
+- Update typescript-eslint to version 8.46.4 ([1eca271](https://github.com/genu/zenstack-pinia-colada/commit/1eca271))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
