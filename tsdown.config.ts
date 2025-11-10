@@ -1,13 +1,12 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
     entry: {
-        vue: 'src/vue.ts',
+        index: 'src/index.ts',
     },
     outDir: 'dist',
-    splitting: false,
     sourcemap: true,
     clean: true,
     dts: true,
-    format: ['cjs', 'esm'],
+    format: ['esm'],
 });

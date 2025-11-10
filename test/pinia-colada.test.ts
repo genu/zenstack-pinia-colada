@@ -1,6 +1,6 @@
 import { createPinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useClientQueries } from '../src/vue';
+import { useClientQueries } from '../src/index';
 import { schema } from './schemas/basic/schema-lite';
 
 describe('Pinia Colada Client Tests', () => {
