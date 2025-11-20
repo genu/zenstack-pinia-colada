@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.3
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.2...v0.1.3)
+
+### 🏡 Chore
+
+- Bump zenstack ([9daa7f7](https://github.com/genu/zenstack-pinia-colada/commit/9daa7f7))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.2
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.1...v0.1.2)
