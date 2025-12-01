@@ -14,7 +14,7 @@
     "test:typecheck": "tsc --noEmit --project tsconfig.test.json",
     "prepublishOnly": "pnpm run build",
     "prepack": "pnpm run build",
-    "changelog": "changelogen",
+    "changelogen": "changelogen",
     "release": "changelogen --release && npm publish",
     "release:push-tags": "git push --follow-tags"
   },
@@ -48,32 +48,32 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@zenstackhq/common-helpers": "^3.0.0-beta.25",
-    "@zenstackhq/orm": "^3.0.0-beta.25",
-    "@zenstackhq/schema": "^3.0.0-beta.25",
+    "@zenstackhq/common-helpers": "^3.0.0-beta.26",
+    "@zenstackhq/orm": "^3.0.0-beta.26",
+    "@zenstackhq/schema": "^3.0.0-beta.26",
     "decimal.js": "^10.6.0",
-    "superjson": "^2.2.5"
+    "superjson": "^2.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@pinia/colada": "^0.17.8",
+    "@pinia/colada": "^0.17.9",
     "@testing-library/dom": "^10.4.1",
     "@types/node": "^24.10.1",
-    "@zenstackhq/language": "^3.0.0-beta.25",
-    "@zenstackhq/sdk": "^3.0.0-beta.25",
+    "@zenstackhq/language": "^3.0.0-beta.26",
+    "@zenstackhq/sdk": "^3.0.0-beta.26",
     "changelogen": "^0.6.2",
     "eslint": "~9.39.1",
     "glob": "^13.0.0",
-    "happy-dom": "^20.0.10",
+    "happy-dom": "^20.0.11",
     "nock": "^14.0.10",
     "pinia": "^3.0.4",
-    "prettier": "^3.6.2",
-    "tsdown": "^0.16.6",
-    "tsx": "^4.20.6",
+    "prettier": "^3.7.3",
+    "tsdown": "^0.16.8",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0",
-    "vitest": "^4.0.12",
-    "vue": "^3.5.24"
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.14",
+    "vue": "^3.5.25"
   },
   "peerDependencies": {
     "@pinia/colada": ">=0.10.0 <1.0.0",
