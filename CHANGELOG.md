@@ -1,6 +1,20 @@
 # Changelog
 
 
+## v0.1.5
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.4...v0.1.5)
+
+### 🏡 Chore
+
+- Update deps ([2eb5968](https://github.com/genu/zenstack-pinia-colada/commit/2eb5968))
+- Refine type definitions and improve query options handling ([4188ff7](https://github.com/genu/zenstack-pinia-colada/commit/4188ff7))
+- Enhance query handling and update utility functions ([b3ceb30](https://github.com/genu/zenstack-pinia-colada/commit/b3ceb30))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.4
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.3...v0.1.4)
