@@ -3,6 +3,13 @@ import type { GetModels, IsDelegateModel, SchemaDef } from "@zenstackhq/schema"
 
 export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>
 
+/**
+ * Adds an optional `$optimistic` flag to a type for optimistic updates.
+ */
+export type WithOptimistic<T> = T extends Array<infer E>
+  ? Array<E & { $optimistic?: boolean }>
+  : T & { $optimistic?: boolean }
+
 export const ORMWriteActions = [
   "create",
   "createMany",

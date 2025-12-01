@@ -11,7 +11,7 @@ import type { ORMWriteActionType } from "./types"
 export const DEFAULT_QUERY_ENDPOINT = "/api/model"
 
 /**
- * Prefix for react-query keys.
+ * Prefix for query keys.
  */
 export const QUERY_KEY_PREFIX = "zenstack"
 
@@ -149,7 +149,7 @@ export async function fetcher<R>(url: string, options?: RequestInit, customFetch
   }
 }
 
-type QueryKey = [
+type Key = [
   string /* prefix */,
   string /* model */,
   string /* operation */,
@@ -161,19 +161,19 @@ type QueryKey = [
 ]
 
 /**
- * Computes query key for the given model, operation and query args.
+ * Computes key for the given model, operation and query args.
  * @param model Model name.
  * @param operation Query operation (e.g, `findMany`) or request URL. If it's a URL, the last path segment will be used as the operation name.
  * @param args Query arguments.
  * @param options Query options, including `infinite` indicating if it's an infinite query (defaults to false), and `optimisticUpdate` indicating if optimistic updates are enabled (defaults to true).
- * @returns Query key
+ * @returns Key
  */
-export function getQueryKey(
+export function getKey(
   model: string,
   operation: string,
   args: unknown,
   options: { infinite: boolean; optimisticUpdate: boolean } = { infinite: false, optimisticUpdate: true },
-): QueryKey {
+): Key {
   const infinite = options.infinite
   // infinite query doesn't support optimistic updates
   const optimisticUpdate = options.infinite ? false : options.optimisticUpdate
@@ -213,11 +213,22 @@ export function makeUrl(endpoint: string, model: string, operation: string, args
   return result
 }
 
-type InvalidationPredicate = ({ queryKey }: { queryKey: readonly unknown[] }) => boolean
+type InvalidationPredicate = ({ key }: { key: readonly unknown[] }) => boolean
 type InvalidateFunc = (predicate: InvalidationPredicate) => Promise<void>
-type MutationOptions = {
+
+/**
+ * Pinia Colada mutation hook signatures.
+ * @see https://pinia-colada.esm.dev/guide/mutations.html
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MutationHooks = Record<string, any> & {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onMutate?: (...args: any[]) => any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSuccess?: (...args: any[]) => any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onError?: (...args: any[]) => any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSettled?: (...args: any[]) => any
 }
 
@@ -226,14 +237,15 @@ export function setupInvalidation(
   model: string,
   operation: string,
   schema: SchemaDef,
-  options: MutationOptions,
+  options: MutationHooks,
   invalidate: InvalidateFunc,
   logging = false,
 ) {
   const origOnSuccess = options?.onSuccess
   options.onSuccess = async (...args: unknown[]) => {
-    const [_, variables] = args
-    const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, variables, schema, logging)
+    // Pinia Colada: onSuccess(data, vars, context) - vars is second arg
+    const vars = args[1]
+    const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, vars, schema, logging)
     await invalidate(predicate)
     return origOnSuccess?.(...args)
   }
@@ -243,19 +255,19 @@ export function setupInvalidation(
 async function getInvalidationPredicate(
   model: string,
   operation: ORMWriteActionType,
-  mutationArgs: any,
+  mutationArgs: unknown,
   schema: SchemaDef,
   logging = false,
 ) {
   const mutatedModels = await getMutatedModels(model, operation, mutationArgs, schema)
 
-  return ({ queryKey }: { queryKey: readonly unknown[] }) => {
-    const [_, queryModel, , args] = queryKey as QueryKey
+  return ({ key }: { key: readonly unknown[] }) => {
+    const [_, queryModel, , args] = key as Key
 
     if (mutatedModels.includes(queryModel)) {
       // direct match
       if (logging) {
-        console.log(`Invalidating query ${JSON.stringify(queryKey)} due to mutation "${model}.${operation}"`)
+        console.log(`Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`)
       }
       return true
     }
@@ -264,7 +276,7 @@ async function getInvalidationPredicate(
       // traverse query args to find nested reads that match the model under mutation
       if (findNestedRead(queryModel, mutatedModels, schema, args)) {
         if (logging) {
-          console.log(`Invalidating query ${JSON.stringify(queryKey)} due to mutation "${model}.${operation}"`)
+          console.log(`Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`)
         }
         return true
       }
@@ -280,15 +292,15 @@ function findNestedRead(visitingModel: string, targetModels: string[], schema: S
   return targetModels.some((m) => modelsRead.includes(m))
 }
 
-type QueryCache = {
-  queryKey: readonly unknown[]
+type CacheEntry = {
+  key: readonly unknown[]
   state: {
     data: unknown
     error: unknown
   }
 }[]
 
-type SetCacheFunc = (queryKey: readonly unknown[], data: unknown) => void
+type SetCacheFunc = (key: readonly unknown[], data: unknown) => void
 
 /**
  * Sets up optimistic update and invalidation (after settled) for a mutation.
@@ -297,8 +309,8 @@ export function setupOptimisticUpdate(
   model: string,
   operation: string,
   schema: SchemaDef,
-  options: MutationOptions & ExtraMutationOptions,
-  queryCache: QueryCache,
+  options: MutationHooks & ExtraMutationOptions,
+  cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
   invalidate?: InvalidateFunc,
   logging = false,
@@ -308,55 +320,57 @@ export function setupOptimisticUpdate(
 
   // optimistic update on mutate
   options.onMutate = async (...args: unknown[]) => {
-    const [variables] = args
-    await optimisticUpdate(model, operation as ORMWriteActionType, variables, options, schema, queryCache, setCache, logging)
+    // Pinia Colada: onMutate(vars, context) - vars is first arg
+    const vars = args[0]
+    await optimisticUpdate(model, operation as ORMWriteActionType, vars, options, schema, cacheEntries, setCache, logging)
     return origOnMutate?.(...args)
   }
 
   // invalidate on settled
   options.onSettled = async (...args: unknown[]) => {
     if (invalidate) {
-      const [, , variables] = args
-      const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, variables, schema, logging)
+      // Pinia Colada: onSettled(data, error, vars, context) - vars is third arg
+      const vars = args[2]
+      const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, vars, schema, logging)
       await invalidate(predicate)
     }
     return origOnSettled?.(...args)
   }
 }
 
-// optimistically updates query cache
+// optimistically updates cache
 async function optimisticUpdate(
   mutationModel: string,
   mutationOp: string,
-  mutationArgs: any,
-  options: MutationOptions & ExtraMutationOptions,
+  mutationArgs: unknown,
+  options: MutationHooks & ExtraMutationOptions,
   schema: SchemaDef,
-  queryCache: QueryCache,
+  cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
   logging = false,
 ) {
-  for (const cacheItem of queryCache) {
+  for (const cacheItem of cacheEntries) {
     const {
-      queryKey,
+      key,
       state: { data, error },
     } = cacheItem
 
-    if (!isZenStackQueryKey(queryKey)) {
+    if (!isZenStackKey(key)) {
       // skip non-zenstack queries
       continue
     }
 
     if (error) {
       if (logging) {
-        console.warn(`Skipping optimistic update for ${JSON.stringify(queryKey)} due to error:`, error)
+        console.warn(`Skipping optimistic update for ${JSON.stringify(key)} due to error:`, error)
       }
       continue
     }
 
-    const [_, queryModel, queryOperation, queryArgs, queryOptions] = queryKey
+    const [_, queryModel, queryOperation, queryArgs, queryOptions] = key
     if (!queryOptions?.optimisticUpdate) {
       if (logging) {
-        console.log(`Skipping optimistic update for ${JSON.stringify(queryKey)} due to opt-out`)
+        console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to opt-out`)
       }
       continue
     }
@@ -373,15 +387,15 @@ async function optimisticUpdate(
       if (providerResult?.kind === "Skip") {
         // skip
         if (logging) {
-          console.log(`Skipping optimistic update for ${JSON.stringify(queryKey)} due to provider`)
+          console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to provider`)
         }
         continue
       } else if (providerResult?.kind === "Update") {
         // update cache
         if (logging) {
-          console.log(`Optimistically updating query ${JSON.stringify(queryKey)} due to provider`)
+          console.log(`Optimistically updating query ${JSON.stringify(key)} due to provider`)
         }
-        setCache(queryKey, providerResult.data)
+        setCache(key, providerResult.data)
         continue
       }
     }
@@ -401,19 +415,19 @@ async function optimisticUpdate(
     if (mutatedData !== undefined) {
       // mutation applicable to this query, update cache
       if (logging) {
-        console.log(`Optimistically updating query ${JSON.stringify(queryKey)} due to mutation "${mutationModel}.${mutationOp}"`)
+        console.log(`Optimistically updating query ${JSON.stringify(key)} due to mutation "${mutationModel}.${mutationOp}"`)
       }
-      setCache(queryKey, mutatedData)
+      setCache(key, mutatedData)
     }
   }
 }
 
-function isZenStackQueryKey(queryKey: readonly unknown[]): queryKey is QueryKey {
-  if (queryKey.length < 5) {
+function isZenStackKey(key: readonly unknown[]): key is Key {
+  if (key.length < 5) {
     return false
   }
 
-  if (queryKey[0] !== QUERY_KEY_PREFIX) {
+  if (key[0] !== QUERY_KEY_PREFIX) {
     return false
   }
 

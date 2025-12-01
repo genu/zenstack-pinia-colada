@@ -11,12 +11,13 @@ import type {
   CreateManyArgs,
   DeleteArgs,
   DeleteManyArgs,
-  FindArgs,
+  FindFirstArgs,
+  FindManyArgs,
   FindUniqueArgs,
   GroupByArgs,
   GroupByResult,
-  ModelResult,
   SelectSubset,
+  SimplifiedModelResult,
   Subset,
   UpdateArgs,
   UpdateManyAndReturnArgs,
@@ -40,7 +41,7 @@ import {
 import { lowerCaseFirst } from "@zenstackhq/common-helpers"
 import {
   DEFAULT_QUERY_ENDPOINT,
-  getQueryKey,
+  getKey,
   makeUrl,
   type ExtraMutationOptions,
   type ExtraQueryOptions,
@@ -77,11 +78,16 @@ export type ClientHooks<Schema extends SchemaDef> = {
 
 export type ModelQueryOptions<T> = Omit<UseQueryOptions<T>, "key" | "query"> & ExtraQueryOptions
 
-export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<T> & { queryKey: EntryKey }
+export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<{ items: T[]; nextCursor?: unknown }, Error> & {
+  key: EntryKey
+}
 
-export type ModelQueryResult<T> = UseQueryReturn<T> & { queryKey: EntryKey }
+export type ModelQueryResult<T> = UseQueryReturn<T> & { key: EntryKey }
 
-export type ModelInfiniteQueryOptions<T> = Omit<UseInfiniteQueryOptions<T, Error>, "key" | "query" | "initialPageParam">
+export type ModelInfiniteQueryOptions<T> = Omit<
+  UseInfiniteQueryOptions<T[], Error, T[] | undefined, { items: T[]; nextCursor?: unknown }>,
+  "key" | "query" | "initialPage" | "merge"
+>
 
 export type ModelMutationOptions<T, TArgs> = MaybeRefOrGetter<
   Omit<UnwrapRef<UseMutationOptions<T, TArgs>>, "mutation"> & ExtraMutationOptions
@@ -94,15 +100,17 @@ export type ModelMutationModelResult<
   Model extends GetModels<Schema>,
   TArgs,
   Array extends boolean = false,
-  TResult = ModelResult<Schema, Model, ClientOptions<Schema>, TArgs>,
-> = Omit<ModelMutationResult<TResult, TArgs>, "mutateAsync"> & {
+> = Omit<
+  ModelMutationResult<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, TArgs, false, Array>, TArgs>,
+  "mutateAsync"
+> & {
   mutateAsync<T extends TArgs>(
     args: T,
-    options?: ModelMutationOptions<ModelResult<Schema, Model, ClientOptions<Schema>, T>, T>,
-  ): Promise<Array extends true ? ModelResult<Schema, Model, ClientOptions<Schema>, T>[] : ModelResult<Schema, Model, ClientOptions<Schema>, T>>
+    options?: ModelMutationOptions<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>, T>,
+  ): Promise<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>>
 }
 
-type MResult<Schema extends SchemaDef, Model extends GetModels<Schema>, T> = ModelResult<
+type MResult<Schema extends SchemaDef, Model extends GetModels<Schema>, T> = SimplifiedModelResult<
   Schema,
   Model,
   ClientOptions<Schema>,
@@ -118,18 +126,18 @@ export type ModelQueryHooks<Schema extends SchemaDef, Model extends GetModels<Sc
       options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
     ): ModelQueryResult<MResult<Schema, Model, T> | null>
 
-    useFindFirst<T extends FindArgs<Schema, Model, false>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindArgs<Schema, Model, false>>>,
+    useFindFirst<T extends FindFirstArgs<Schema, Model>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
       options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
     ): ModelQueryResult<MResult<Schema, Model, T> | null>
 
-    useFindMany<T extends FindArgs<Schema, Model, true>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindArgs<Schema, Model, true>>>,
+    useFindMany<T extends FindManyArgs<Schema, Model>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
       options?: ModelQueryOptions<MResult<Schema, Model, T>[]>,
     ): ModelQueryResult<MResult<Schema, Model, T>[]>
 
-    useInfiniteFindMany<T extends FindArgs<Schema, Model, true>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindArgs<Schema, Model, true>>>,
+    useInfiniteFindMany<T extends FindManyArgs<Schema, Model>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
       options?: ModelInfiniteQueryOptions<MResult<Schema, Model, T>[]>,
     ): ModelInfiniteQueryResult<MResult<Schema, Model, T>[]>
 
@@ -186,67 +194,90 @@ export type ModelQueryHooks<Schema extends SchemaDef, Model extends GetModels<Sc
   }
 >
 
-export function useInternalQuery<TQueryFnData>(
+export function useInternalQuery<TData>(
   _schema: SchemaDef,
   model: string,
   operation: string,
   args?: MaybeRefOrGetter<unknown>,
-  options?: Omit<UseQueryOptions<TQueryFnData>, "key" | "query"> & ExtraQueryOptions,
+  options?: Omit<UseQueryOptions<TData>, "key" | "query"> & ExtraQueryOptions,
 ) {
   const { optimisticUpdate, ...restOptions } = options ?? {}
   const { endpoint, fetch } = getQuerySettings()
 
-  // Make the query key reactive by computing it from a getter
-  const queryKey = () => {
+  // Make the key reactive by computing it from a getter
+  const key = () => {
     const argsValue = toValue(args)
-    return getQueryKey(model, operation, argsValue, {
+    return getKey(model, operation, argsValue, {
       infinite: false,
       optimisticUpdate: optimisticUpdate !== false,
     })
   }
 
   const finalOptions = {
-    key: queryKey,
+    key: key,
     query: ({ signal }: { signal: AbortSignal }) => {
       const argsValue = toValue(args)
       const reqUrl = makeUrl(endpoint, model, operation, argsValue)
-      return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
+      return fetcher<TData>(reqUrl, { signal }, fetch)
     },
     ...restOptions,
-  } as UseQueryOptions<TQueryFnData>
+  } as UseQueryOptions<TData>
 
-  return { queryKey: queryKey(), ...useQuery<TQueryFnData>(finalOptions) }
+  return { key: key(), ...useQuery<TData>(finalOptions) }
 }
 
-export function useInternalInfiniteQuery<TQueryFnData>(
+export function useInternalInfiniteQuery<TData>(
   _schema: SchemaDef,
   model: string,
   operation: string,
   args: MaybeRefOrGetter<unknown>,
-  options: Omit<UseInfiniteQueryOptions<TQueryFnData, Error>, "key" | "query" | "initialPageParam"> | undefined,
+  options: Omit<UseInfiniteQueryOptions<TData, Error>, "key" | "query" | "initialPage" | "merge"> | undefined,
 ) {
   const { endpoint, fetch } = getQuerySettings()
 
-  // Make the query key reactive by computing it from a getter
-  const queryKey = () => {
+  // Make the key reactive by computing it from a getter
+  const key = () => {
     const argsValue = toValue(args)
-    return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
+    return getKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
+  }
+
+  // Type for paginated results - contains items array and cursor info
+  type PageState = {
+    items: TData[]
+    nextCursor?: unknown
   }
 
   const finalOptions = {
-    key: queryKey,
-    query: ({ signal, nextPage }: { signal: AbortSignal; nextPage: unknown }) => {
-      const argsValue = toValue(args)
-      const pageArgs = nextPage !== undefined ? nextPage : argsValue
+    key: key,
+    // Pinia Colada's infinite query: query receives accumulated pages and returns new page data
+    query: async (pages: PageState, { signal }: { signal: AbortSignal }): Promise<TData[]> => {
+      const argsValue = toValue(args) as Record<string, unknown> | undefined
+      // Build query args with cursor for pagination
+      const pageArgs = pages.nextCursor
+        ? { ...argsValue, cursor: pages.nextCursor }
+        : argsValue
       const reqUrl = makeUrl(endpoint, model, operation, pageArgs)
-      return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
+      return fetcher<TData[]>(reqUrl, { signal }, fetch)
     },
-    initialPageParam: () => toValue(args),
+    // Initial page state
+    initialPage: (): PageState => ({
+      items: [],
+      nextCursor: undefined,
+    }),
+    // Merge function: combines existing pages with new data
+    merge: (result: PageState, current: TData[]): PageState => {
+      // Extract cursor from last item if available (common pagination pattern)
+      const lastItem = current[current.length - 1] as Record<string, unknown> | undefined
+      return {
+        items: [...result.items, ...current],
+        nextCursor: lastItem?.id, // Use last item's id as cursor for next page
+      }
+    },
     ...options,
-  } as UseInfiniteQueryOptions<TQueryFnData, Error>
+  } as UseInfiniteQueryOptions<TData[], Error, TData[] | undefined, PageState>
 
   return {
-    queryKey: queryKey(),
+    key: key(),
     ...useInfiniteQuery(finalOptions),
   }
 }
@@ -299,7 +330,7 @@ export function useInternalMutation<TArgs, R = unknown>(
         finalOptions,
         async (predicate) => {
           await queryCache.invalidateQueries({
-            predicate: (entry) => predicate({ queryKey: entry.key as readonly unknown[] }),
+            predicate: (entry) => predicate({ key: entry.key as readonly unknown[] }),
           })
         },
         logging,
@@ -313,23 +344,23 @@ export function useInternalMutation<TArgs, R = unknown>(
         schema,
         finalOptions,
         queryCache.getEntries().map((entry) => ({
-          queryKey: entry.key as readonly unknown[],
+          key: entry.key as readonly unknown[],
           state: {
             data: entry.state.value.data,
             error: entry.state.value.error,
           },
         })),
-        (queryKey, data) => {
+        (key, data) => {
           // update query cache
-          queryCache.setQueryData(queryKey as EntryKey, data)
+          queryCache.setQueryData(key as EntryKey, data)
           // cancel on-flight queries to avoid redundant cache updates,
           // the settlement of the current mutation will trigger a new revalidation
-          queryCache.cancelQueries({ key: queryKey as EntryKey })
+          queryCache.cancelQueries({ key: key as EntryKey })
         },
         invalidateQueries
           ? async (predicate) => {
               await queryCache.invalidateQueries({
-                predicate: (entry) => predicate({ queryKey: entry.key as readonly unknown[] }),
+                predicate: (entry) => predicate({ key: entry.key as readonly unknown[] }),
               })
             }
           : undefined,
