@@ -1,14 +1,6 @@
 # ZenStack Pinia Colada
 
-Pinia Colada client for [ZenStack](https://zenstack.dev) - The Smart Data Fetching Layer for Vue 3.
-
-## What is ZenStack?
-
-ZenStack is a toolkit that supercharges Prisma ORM with a powerful access control layer and unleashes its full potential for full-stack development. It allows you to write authorization logic in your database schema and generates type-safe CRUD APIs automatically.
-
-## What is Pinia Colada?
-
-[Pinia Colada](https://pinia-colada.esm.dev/) is the smart data fetching layer for Vue 3, built on top of Pinia. It provides declarative data fetching with automatic caching, request deduplication, and optimistic updates.
+[Pinia Colada](https://pinia-colada.esm.dev/)  client for [ZenStack](https://zenstack.dev) - The Smart Data Fetching Layer for Vue 3.
 
 ## Features
 
