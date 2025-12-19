@@ -1,8 +1,8 @@
-import { enumerate } from '@zenstackhq/common-helpers'
-import type { FieldDef, SchemaDef } from '@zenstackhq/schema'
-import { ORMWriteActions, type MaybePromise, type ORMWriteActionType } from './types'
+import { enumerate } from "@zenstackhq/common-helpers";
+import type { FieldDef, SchemaDef } from "@zenstackhq/schema";
+import { ORMWriteActions, type MaybePromise, type ORMWriteActionType } from "./types";
 
-type NestingPathItem = { field?: FieldDef; model: string; where: any; unique: boolean }
+type NestingPathItem = { field?: FieldDef; model: string; where: any; unique: boolean };
 
 /**
  * Context for visiting
@@ -11,18 +11,18 @@ export type NestedWriteVisitorContext = {
   /**
    * Parent data, can be used to replace fields
    */
-  parent: any
+  parent: any;
 
   /**
    * Current field, undefined if toplevel
    */
-  field?: FieldDef
+  field?: FieldDef;
 
   /**
    * A top-down path of all nested update conditions and corresponding field till now
    */
-  nestingPath: NestingPathItem[]
-}
+  nestingPath: NestingPathItem[];
+};
 
 /**
  * NestedWriteVisitor's callback actions. A call back function should return true or void to indicate
@@ -33,76 +33,76 @@ export type NestedWriterVisitorCallback = {
   create?: (
     model: string,
     data: any,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   createMany?: (
     model: string,
     args: { data: any; skipDuplicates?: boolean },
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   connectOrCreate?: (
     model: string,
     args: { where: object; create: any },
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   connect?: (
     model: string,
     args: object,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   disconnect?: (
     model: string,
     args: object,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   set?: (
     model: string,
     args: object,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   update?: (
     model: string,
     args: object,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   updateMany?: (
     model: string,
     args: { where?: object; data: any },
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   upsert?: (
     model: string,
     args: { where: object; create: any; update: any },
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   delete?: (
     model: string,
     args: object | boolean,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   deleteMany?: (
     model: string,
     args: any | object,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<boolean | object | void>
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<boolean | object | void>;
 
   field?: (
     field: FieldDef,
     action: ORMWriteActionType,
     data: any,
-    context: NestedWriteVisitorContext
-  ) => MaybePromise<void>
-}
+    context: NestedWriteVisitorContext,
+  ) => MaybePromise<void>;
+};
 
 /**
  * Recursive visitor for nested write (create/update) payload.
@@ -110,11 +110,11 @@ export type NestedWriterVisitorCallback = {
 export class NestedWriteVisitor {
   constructor(
     private readonly schema: SchemaDef,
-    private readonly callback: NestedWriterVisitorCallback
+    private readonly callback: NestedWriterVisitorCallback,
   ) {}
 
   private isWriteAction(value: string): value is ORMWriteActionType {
-    return ORMWriteActions.includes(value as ORMWriteActionType)
+    return ORMWriteActions.includes(value as ORMWriteActionType);
   }
 
   /**
@@ -124,24 +124,24 @@ export class NestedWriteVisitor {
    */
   async visit(model: string, action: ORMWriteActionType, args: any): Promise<void> {
     if (!args) {
-      return
+      return;
     }
 
-    let topData = args
+    let topData = args;
 
     switch (action) {
       // create has its data wrapped in 'data' field
-      case 'create':
-        topData = topData.data
-        break
+      case "create":
+        topData = topData.data;
+        break;
 
-      case 'delete':
-      case 'deleteMany':
-        topData = topData.where
-        break
+      case "delete":
+      case "deleteMany":
+        topData = topData.where;
+        break;
     }
 
-    await this.doVisit(model, action, topData, undefined, undefined, [])
+    await this.doVisit(model, action, topData, undefined, undefined, []);
   }
 
   private async doVisit(
@@ -150,173 +150,173 @@ export class NestedWriteVisitor {
     data: any,
     parent: any,
     field: FieldDef | undefined,
-    nestingPath: NestingPathItem[]
+    nestingPath: NestingPathItem[],
   ): Promise<void> {
     if (!data) {
-      return
+      return;
     }
 
-    const toplevel = field == undefined
+    const toplevel = field == undefined;
 
-    const context = { parent, field, nestingPath: [...nestingPath] }
+    const context = { parent, field, nestingPath: [...nestingPath] };
     const pushNewContext = (
       field: FieldDef | undefined,
       model: string,
       where: any,
-      unique = false
+      unique = false,
     ) => {
-      return { ...context, nestingPath: [...context.nestingPath, { field, model, where, unique }] }
-    }
+      return { ...context, nestingPath: [...context.nestingPath, { field, model, where, unique }] };
+    };
 
     // visit payload
     switch (action) {
-      case 'create':
+      case "create":
         for (const item of this.enumerateReverse(data)) {
-          const newContext = pushNewContext(field, model, {})
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, {});
+          let callbackResult: any;
           if (this.callback.create) {
-            callbackResult = await this.callback.create(model, item, newContext)
+            callbackResult = await this.callback.create(model, item, newContext);
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === 'object' ? callbackResult : item
-            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
+            const subPayload = typeof callbackResult === "object" ? callbackResult : item;
+            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath);
           }
         }
-        break
+        break;
 
-      case 'createMany':
-      case 'createManyAndReturn':
+      case "createMany":
+      case "createManyAndReturn":
         {
-          const newContext = pushNewContext(field, model, {})
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, {});
+          let callbackResult: any;
           if (this.callback.createMany) {
-            callbackResult = await this.callback.createMany(model, data, newContext)
+            callbackResult = await this.callback.createMany(model, data, newContext);
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === 'object' ? callbackResult : data.data
-            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
+            const subPayload = typeof callbackResult === "object" ? callbackResult : data.data;
+            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath);
           }
         }
-        break
+        break;
 
-      case 'connectOrCreate':
+      case "connectOrCreate":
         for (const item of this.enumerateReverse(data)) {
-          const newContext = pushNewContext(field, model, item.where)
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, item.where);
+          let callbackResult: any;
           if (this.callback.connectOrCreate) {
-            callbackResult = await this.callback.connectOrCreate(model, item, newContext)
+            callbackResult = await this.callback.connectOrCreate(model, item, newContext);
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === 'object' ? callbackResult : item.create
-            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
+            const subPayload = typeof callbackResult === "object" ? callbackResult : item.create;
+            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath);
           }
         }
-        break
+        break;
 
-      case 'connect':
+      case "connect":
         if (this.callback.connect) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, item, true)
-            await this.callback.connect(model, item, newContext)
+            const newContext = pushNewContext(field, model, item, true);
+            await this.callback.connect(model, item, newContext);
           }
         }
-        break
+        break;
 
-      case 'disconnect':
+      case "disconnect":
         // disconnect has two forms:
         //   if relation is to-many, the payload is a unique filter object
         //   if relation is to-one, the payload can only be boolean `true`
         if (this.callback.disconnect) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, item, typeof item === 'object')
-            await this.callback.disconnect(model, item, newContext)
+            const newContext = pushNewContext(field, model, item, typeof item === "object");
+            await this.callback.disconnect(model, item, newContext);
           }
         }
-        break
+        break;
 
-      case 'set':
+      case "set":
         if (this.callback.set) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, item, true)
-            await this.callback.set(model, item, newContext)
+            const newContext = pushNewContext(field, model, item, true);
+            await this.callback.set(model, item, newContext);
           }
         }
-        break
+        break;
 
-      case 'update':
+      case "update":
         for (const item of this.enumerateReverse(data)) {
-          const newContext = pushNewContext(field, model, item.where)
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, item.where);
+          let callbackResult: any;
           if (this.callback.update) {
-            callbackResult = await this.callback.update(model, item, newContext)
+            callbackResult = await this.callback.update(model, item, newContext);
           }
           if (callbackResult !== false) {
             const subPayload =
-              typeof callbackResult === 'object'
+              typeof callbackResult === "object"
                 ? callbackResult
-                : typeof item.data === 'object'
+                : typeof item.data === "object"
                   ? item.data
-                  : item
-            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
+                  : item;
+            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath);
           }
         }
-        break
+        break;
 
-      case 'updateMany':
-      case 'updateManyAndReturn':
+      case "updateMany":
+      case "updateManyAndReturn":
         for (const item of this.enumerateReverse(data)) {
-          const newContext = pushNewContext(field, model, item.where)
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, item.where);
+          let callbackResult: any;
           if (this.callback.updateMany) {
-            callbackResult = await this.callback.updateMany(model, item, newContext)
+            callbackResult = await this.callback.updateMany(model, item, newContext);
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === 'object' ? callbackResult : item
-            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
+            const subPayload = typeof callbackResult === "object" ? callbackResult : item;
+            await this.visitSubPayload(model, action, subPayload, newContext.nestingPath);
           }
         }
-        break
+        break;
 
-      case 'upsert': {
+      case "upsert": {
         for (const item of this.enumerateReverse(data)) {
-          const newContext = pushNewContext(field, model, item.where)
-          let callbackResult: any
+          const newContext = pushNewContext(field, model, item.where);
+          let callbackResult: any;
           if (this.callback.upsert) {
-            callbackResult = await this.callback.upsert(model, item, newContext)
+            callbackResult = await this.callback.upsert(model, item, newContext);
           }
           if (callbackResult !== false) {
-            if (typeof callbackResult === 'object') {
-              await this.visitSubPayload(model, action, callbackResult, newContext.nestingPath)
+            if (typeof callbackResult === "object") {
+              await this.visitSubPayload(model, action, callbackResult, newContext.nestingPath);
             } else {
-              await this.visitSubPayload(model, action, item.create, newContext.nestingPath)
-              await this.visitSubPayload(model, action, item.update, newContext.nestingPath)
+              await this.visitSubPayload(model, action, item.create, newContext.nestingPath);
+              await this.visitSubPayload(model, action, item.update, newContext.nestingPath);
             }
           }
         }
-        break
+        break;
       }
 
-      case 'delete': {
+      case "delete": {
         if (this.callback.delete) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, toplevel ? item.where : item)
-            await this.callback.delete(model, item, newContext)
+            const newContext = pushNewContext(field, model, toplevel ? item.where : item);
+            await this.callback.delete(model, item, newContext);
           }
         }
-        break
+        break;
       }
 
-      case 'deleteMany':
+      case "deleteMany":
         if (this.callback.deleteMany) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, toplevel ? item.where : item)
-            await this.callback.deleteMany(model, item, newContext)
+            const newContext = pushNewContext(field, model, toplevel ? item.where : item);
+            await this.callback.deleteMany(model, item, newContext);
           }
         }
-        break
+        break;
 
       default: {
-        throw new Error(`unhandled action type ${action}`)
+        throw new Error(`unhandled action type ${action}`);
       }
     }
   }
@@ -325,16 +325,16 @@ export class NestedWriteVisitor {
     model: string,
     action: ORMWriteActionType,
     payload: any,
-    nestingPath: NestingPathItem[]
+    nestingPath: NestingPathItem[],
   ) {
     for (const item of enumerate(payload)) {
-      if (!item || typeof item !== 'object') {
-        continue
+      if (!item || typeof item !== "object") {
+        continue;
       }
       for (const field of Object.keys(item)) {
-        const fieldDef = this.schema.models[model]?.fields[field]
+        const fieldDef = this.schema.models[model]?.fields[field];
         if (!fieldDef) {
-          continue
+          continue;
         }
 
         if (fieldDef.relation) {
@@ -344,7 +344,7 @@ export class NestedWriteVisitor {
               if (this.isWriteAction(subAction) && subData) {
                 await this.doVisit(fieldDef.type, subAction, subData, item[field], fieldDef, [
                   ...nestingPath,
-                ])
+                ]);
               }
             }
           }
@@ -355,7 +355,7 @@ export class NestedWriteVisitor {
               parent: item,
               nestingPath,
               field: fieldDef,
-            })
+            });
           }
         }
       }
@@ -367,10 +367,10 @@ export class NestedWriteVisitor {
   private *enumerateReverse(data: any) {
     if (Array.isArray(data)) {
       for (let i = data.length - 1; i >= 0; i--) {
-        yield data[i]
+        yield data[i];
       }
     } else {
-      yield data
+      yield data;
     }
   }
 }

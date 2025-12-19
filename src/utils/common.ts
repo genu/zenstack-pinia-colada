@@ -1,24 +1,24 @@
-import { lowerCaseFirst } from '@zenstackhq/common-helpers'
-import type { SchemaDef } from '@zenstackhq/schema'
-import { applyMutation } from './mutator'
-import { getMutatedModels, getReadModels } from './query-analysis'
-import { deserialize, serialize } from './serialization'
-import type { ORMWriteActionType } from './types'
+import { lowerCaseFirst } from "@zenstackhq/common-helpers";
+import type { SchemaDef } from "@zenstackhq/schema";
+import { applyMutation } from "./mutator";
+import { getMutatedModels, getReadModels } from "./query-analysis";
+import { deserialize, serialize } from "./serialization";
+import type { ORMWriteActionType } from "./types";
 
 /**
  * The default query endpoint.
  */
-export const DEFAULT_QUERY_ENDPOINT = '/api/model'
+export const DEFAULT_QUERY_ENDPOINT = "/api/model";
 
 /**
  * Prefix for query keys.
  */
-export const QUERY_KEY_PREFIX = 'zenstack'
+export const QUERY_KEY_PREFIX = "zenstack";
 
 /**
  * Function signature for `fetch`.
  */
-export type FetchFn = (url: string, options?: RequestInit) => Promise<Response>
+export type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
 
 /**
  * Type for query and mutation errors.
@@ -27,13 +27,13 @@ export type QueryError = Error & {
   /**
    * Additional error information.
    */
-  info?: unknown
+  info?: unknown;
 
   /**
    * HTTP status code.
    */
-  status?: number
-}
+  status?: number;
+};
 
 /**
  * Result of optimistic data provider.
@@ -45,7 +45,7 @@ export type OptimisticDataProviderResult = {
    *   - Skip: skip the optimistic update for this query.
    *   - ProceedDefault: proceed with the default optimistic update.
    */
-  kind: 'Update' | 'Skip' | 'ProceedDefault'
+  kind: "Update" | "Skip" | "ProceedDefault";
 
   /**
    * Data to update the query cache. Only applicable if `kind` is 'Update'.
@@ -54,8 +54,8 @@ export type OptimisticDataProviderResult = {
    * field set to `true`. If it's an array and an element object is created or updated,
    * the element should have a `$optimistic` field set to `true`.
    */
-  data?: any
-}
+  data?: any;
+};
 
 /**
  * Optimistic data provider.
@@ -68,12 +68,12 @@ export type OptimisticDataProviderResult = {
  * @param args.mutationArgs The arguments of the mutation.
  */
 export type OptimisticDataProvider = (args: {
-  queryModel: string
-  queryOperation: string
-  queryArgs: any
-  currentData: any
-  mutationArgs: any
-}) => OptimisticDataProviderResult | Promise<OptimisticDataProviderResult>
+  queryModel: string;
+  queryOperation: string;
+  queryArgs: any;
+  currentData: any;
+  mutationArgs: any;
+}) => OptimisticDataProviderResult | Promise<OptimisticDataProviderResult>;
 
 /**
  * Extra mutation options.
@@ -82,18 +82,18 @@ export type ExtraMutationOptions = {
   /**
    * Whether to automatically invalidate queries potentially affected by the mutation. Defaults to `true`.
    */
-  invalidateQueries?: boolean
+  invalidateQueries?: boolean;
 
   /**
    * Whether to optimistically update queries potentially affected by the mutation. Defaults to `false`.
    */
-  optimisticUpdate?: boolean
+  optimisticUpdate?: boolean;
 
   /**
    * A callback for computing optimistic update data for each query cache entry.
    */
-  optimisticDataProvider?: OptimisticDataProvider
-}
+  optimisticDataProvider?: OptimisticDataProvider;
+};
 
 /**
  * Extra query options.
@@ -102,8 +102,8 @@ export type ExtraQueryOptions = {
   /**
    * Whether to opt-in to optimistic updates for this query. Defaults to `true`.
    */
-  optimisticUpdate?: boolean
-}
+  optimisticUpdate?: boolean;
+};
 
 /**
  * Context type for configuring the hooks.
@@ -112,44 +112,44 @@ export type APIContext = {
   /**
    * The endpoint to use for the queries.
    */
-  endpoint?: string
+  endpoint?: string;
 
   /**
    * A custom fetch function for sending the HTTP requests.
    */
-  fetch?: FetchFn
+  fetch?: FetchFn;
 
   /**
    * If logging is enabled.
    */
-  logging?: boolean
-}
+  logging?: boolean;
+};
 
 export async function fetcher<R>(
   url: string,
   options?: RequestInit,
-  customFetch?: FetchFn
+  customFetch?: FetchFn,
 ): Promise<R> {
-  const _fetch = customFetch ?? fetch
-  const res = await _fetch(url, options)
+  const _fetch = customFetch ?? fetch;
+  const res = await _fetch(url, options);
   if (!res.ok) {
-    const errData = unmarshal(await res.text())
-    if (errData.error?.rejectedByPolicy && errData.error?.rejectReason === 'cannot-read-back') {
+    const errData = unmarshal(await res.text());
+    if (errData.error?.rejectedByPolicy && errData.error?.rejectReason === "cannot-read-back") {
       // policy doesn't allow mutation result to be read back, just return undefined
-      return undefined as any
+      return undefined as any;
     }
-    const error: QueryError = new Error('An error occurred while fetching the data.')
-    error.info = errData.error
-    error.status = res.status
-    throw error
+    const error: QueryError = new Error("An error occurred while fetching the data.");
+    error.info = errData.error;
+    error.status = res.status;
+    throw error;
   }
 
-  const textResult = await res.text()
+  const textResult = await res.text();
   try {
-    return unmarshal(textResult).data as R
+    return unmarshal(textResult).data as R;
   } catch (err) {
-    console.error(`Unable to deserialize data:`, textResult)
-    throw err
+    console.error(`Unable to deserialize data:`, textResult);
+    throw err;
   }
 }
 
@@ -159,10 +159,10 @@ type Key = [
   string /* operation */,
   unknown /* args */,
   {
-    infinite: boolean
-    optimisticUpdate: boolean
+    infinite: boolean;
+    optimisticUpdate: boolean;
   } /* flags */,
-]
+];
 
 /**
  * Computes key for the given model, operation and query args.
@@ -179,49 +179,49 @@ export function getKey(
   options: { infinite: boolean; optimisticUpdate: boolean } = {
     infinite: false,
     optimisticUpdate: true,
-  }
+  },
 ): Key {
-  const infinite = options.infinite
+  const infinite = options.infinite;
   // infinite query doesn't support optimistic updates
-  const optimisticUpdate = options.infinite ? false : options.optimisticUpdate
-  return [QUERY_KEY_PREFIX, model, operation!, args, { infinite, optimisticUpdate }]
+  const optimisticUpdate = options.infinite ? false : options.optimisticUpdate;
+  return [QUERY_KEY_PREFIX, model, operation!, args, { infinite, optimisticUpdate }];
 }
 
 export function marshal(value: unknown) {
-  const { data, meta } = serialize(value)
+  const { data, meta } = serialize(value);
   if (meta) {
-    return JSON.stringify({ ...(data as any), meta: { serialization: meta } })
+    return JSON.stringify({ ...(data as any), meta: { serialization: meta } });
   } else {
-    return JSON.stringify(data)
+    return JSON.stringify(data);
   }
 }
 
 export function unmarshal(value: string) {
-  const parsed = JSON.parse(value)
-  if (typeof parsed === 'object' && parsed?.data && parsed?.meta?.serialization) {
-    const deserializedData = deserialize(parsed.data, parsed.meta.serialization)
-    return { ...parsed, data: deserializedData }
+  const parsed = JSON.parse(value);
+  if (typeof parsed === "object" && parsed?.data && parsed?.meta?.serialization) {
+    const deserializedData = deserialize(parsed.data, parsed.meta.serialization);
+    return { ...parsed, data: deserializedData };
   } else {
-    return parsed
+    return parsed;
   }
 }
 
 export function makeUrl(endpoint: string, model: string, operation: string, args?: unknown) {
-  const baseUrl = `${endpoint}/${lowerCaseFirst(model)}/${operation}`
+  const baseUrl = `${endpoint}/${lowerCaseFirst(model)}/${operation}`;
   if (!args) {
-    return baseUrl
+    return baseUrl;
   }
 
-  const { data, meta } = serialize(args)
-  let result = `${baseUrl}?q=${encodeURIComponent(JSON.stringify(data))}`
+  const { data, meta } = serialize(args);
+  let result = `${baseUrl}?q=${encodeURIComponent(JSON.stringify(data))}`;
   if (meta) {
-    result += `&meta=${encodeURIComponent(JSON.stringify({ serialization: meta }))}`
+    result += `&meta=${encodeURIComponent(JSON.stringify({ serialization: meta }))}`;
   }
-  return result
+  return result;
 }
 
-type InvalidationPredicate = ({ key }: { key: readonly unknown[] }) => boolean
-type InvalidateFunc = (predicate: InvalidationPredicate) => Promise<void>
+type InvalidationPredicate = ({ key }: { key: readonly unknown[] }) => boolean;
+type InvalidateFunc = (predicate: InvalidationPredicate) => Promise<void>;
 
 /**
  * Pinia Colada mutation hook signatures.
@@ -229,14 +229,14 @@ type InvalidateFunc = (predicate: InvalidationPredicate) => Promise<void>
  */
 
 type MutationHooks = Record<string, any> & {
-  onMutate?: (...args: any[]) => any
+  onMutate?: (...args: any[]) => any;
 
-  onSuccess?: (...args: any[]) => any
+  onSuccess?: (...args: any[]) => any;
 
-  onError?: (...args: any[]) => any
+  onError?: (...args: any[]) => any;
 
-  onSettled?: (...args: any[]) => any
-}
+  onSettled?: (...args: any[]) => any;
+};
 
 // sets up invalidation hook for a mutation
 export function setupInvalidation(
@@ -245,22 +245,22 @@ export function setupInvalidation(
   schema: SchemaDef,
   options: MutationHooks,
   invalidate: InvalidateFunc,
-  logging = false
+  logging = false,
 ) {
-  const origOnSuccess = options?.onSuccess
+  const origOnSuccess = options?.onSuccess;
   options.onSuccess = async (...args: unknown[]) => {
     // Pinia Colada: onSuccess(data, vars, context) - vars is second arg
-    const vars = args[1]
+    const vars = args[1];
     const predicate = await getInvalidationPredicate(
       model,
       operation as ORMWriteActionType,
       vars,
       schema,
-      logging
-    )
-    await invalidate(predicate)
-    return origOnSuccess?.(...args)
-  }
+      logging,
+    );
+    await invalidate(predicate);
+    return origOnSuccess?.(...args);
+  };
 }
 
 // gets a predicate for evaluating whether a query should be invalidated
@@ -269,21 +269,21 @@ async function getInvalidationPredicate(
   operation: ORMWriteActionType,
   mutationArgs: unknown,
   schema: SchemaDef,
-  logging = false
+  logging = false,
 ) {
-  const mutatedModels = await getMutatedModels(model, operation, mutationArgs, schema)
+  const mutatedModels = await getMutatedModels(model, operation, mutationArgs, schema);
 
   return ({ key }: { key: readonly unknown[] }) => {
-    const [_, queryModel, , args] = key as Key
+    const [_, queryModel, , args] = key as Key;
 
     if (mutatedModels.includes(queryModel)) {
       // direct match
       if (logging) {
         console.log(
-          `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`
-        )
+          `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`,
+        );
       }
-      return true
+      return true;
     }
 
     if (args) {
@@ -291,15 +291,15 @@ async function getInvalidationPredicate(
       if (findNestedRead(queryModel, mutatedModels, schema, args)) {
         if (logging) {
           console.log(
-            `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`
-          )
+            `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`,
+          );
         }
-        return true
+        return true;
       }
     }
 
-    return false
-  }
+    return false;
+  };
 }
 
 // find nested reads that match the given models
@@ -307,21 +307,21 @@ function findNestedRead(
   visitingModel: string,
   targetModels: string[],
   schema: SchemaDef,
-  args: any
+  args: any,
 ) {
-  const modelsRead = getReadModels(visitingModel, schema, args)
-  return targetModels.some((m) => modelsRead.includes(m))
+  const modelsRead = getReadModels(visitingModel, schema, args);
+  return targetModels.some((m) => modelsRead.includes(m));
 }
 
 type CacheEntry = {
-  key: readonly unknown[]
+  key: readonly unknown[];
   state: {
-    data: unknown
-    error: unknown
-  }
-}[]
+    data: unknown;
+    error: unknown;
+  };
+}[];
 
-type SetCacheFunc = (key: readonly unknown[], data: unknown) => void
+type SetCacheFunc = (key: readonly unknown[], data: unknown) => void;
 
 /**
  * Sets up optimistic update and invalidation (after settled) for a mutation.
@@ -334,15 +334,15 @@ export function setupOptimisticUpdate(
   cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
   invalidate?: InvalidateFunc,
-  logging = false
+  logging = false,
 ) {
-  const origOnMutate = options?.onMutate
-  const origOnSettled = options?.onSettled
+  const origOnMutate = options?.onMutate;
+  const origOnSettled = options?.onSettled;
 
   // optimistic update on mutate
   options.onMutate = async (...args: unknown[]) => {
     // Pinia Colada: onMutate(vars, context) - vars is first arg
-    const vars = args[0]
+    const vars = args[0];
     await optimisticUpdate(
       model,
       operation as ORMWriteActionType,
@@ -351,27 +351,27 @@ export function setupOptimisticUpdate(
       schema,
       cacheEntries,
       setCache,
-      logging
-    )
-    return origOnMutate?.(...args)
-  }
+      logging,
+    );
+    return origOnMutate?.(...args);
+  };
 
   // invalidate on settled
   options.onSettled = async (...args: unknown[]) => {
     if (invalidate) {
       // Pinia Colada: onSettled(data, error, vars, context) - vars is third arg
-      const vars = args[2]
+      const vars = args[2];
       const predicate = await getInvalidationPredicate(
         model,
         operation as ORMWriteActionType,
         vars,
         schema,
-        logging
-      )
-      await invalidate(predicate)
+        logging,
+      );
+      await invalidate(predicate);
     }
-    return origOnSettled?.(...args)
-  }
+    return origOnSettled?.(...args);
+  };
 }
 
 // optimistically updates cache
@@ -383,32 +383,32 @@ async function optimisticUpdate(
   schema: SchemaDef,
   cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
-  logging = false
+  logging = false,
 ) {
   for (const cacheItem of cacheEntries) {
     const {
       key,
       state: { data, error },
-    } = cacheItem
+    } = cacheItem;
 
     if (!isZenStackKey(key)) {
       // skip non-zenstack queries
-      continue
+      continue;
     }
 
     if (error) {
       if (logging) {
-        console.warn(`Skipping optimistic update for ${JSON.stringify(key)} due to error:`, error)
+        console.warn(`Skipping optimistic update for ${JSON.stringify(key)} due to error:`, error);
       }
-      continue
+      continue;
     }
 
-    const [_, queryModel, queryOperation, queryArgs, queryOptions] = key
+    const [_, queryModel, queryOperation, queryArgs, queryOptions] = key;
     if (!queryOptions?.optimisticUpdate) {
       if (logging) {
-        console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to opt-out`)
+        console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to opt-out`);
       }
-      continue
+      continue;
     }
 
     if (options.optimisticDataProvider) {
@@ -418,21 +418,21 @@ async function optimisticUpdate(
         queryArgs,
         currentData: data,
         mutationArgs,
-      })
+      });
 
-      if (providerResult?.kind === 'Skip') {
+      if (providerResult?.kind === "Skip") {
         // skip
         if (logging) {
-          console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to provider`)
+          console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to provider`);
         }
-        continue
-      } else if (providerResult?.kind === 'Update') {
+        continue;
+      } else if (providerResult?.kind === "Update") {
         // update cache
         if (logging) {
-          console.log(`Optimistically updating query ${JSON.stringify(key)} due to provider`)
+          console.log(`Optimistically updating query ${JSON.stringify(key)} due to provider`);
         }
-        setCache(key, providerResult.data)
-        continue
+        setCache(key, providerResult.data);
+        continue;
       }
     }
 
@@ -445,29 +445,29 @@ async function optimisticUpdate(
       mutationOp as ORMWriteActionType,
       mutationArgs,
       schema,
-      logging
-    )
+      logging,
+    );
 
     if (mutatedData !== undefined) {
       // mutation applicable to this query, update cache
       if (logging) {
         console.log(
-          `Optimistically updating query ${JSON.stringify(key)} due to mutation "${mutationModel}.${mutationOp}"`
-        )
+          `Optimistically updating query ${JSON.stringify(key)} due to mutation "${mutationModel}.${mutationOp}"`,
+        );
       }
-      setCache(key, mutatedData)
+      setCache(key, mutatedData);
     }
   }
 }
 
 function isZenStackKey(key: readonly unknown[]): key is Key {
   if (key.length < 5) {
-    return false
+    return false;
   }
 
   if (key[0] !== QUERY_KEY_PREFIX) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }

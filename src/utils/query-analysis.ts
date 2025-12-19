@@ -1,7 +1,7 @@
-import type { SchemaDef } from '@zenstackhq/schema'
-import { NestedReadVisitor } from './nested-read-visitor'
-import { NestedWriteVisitor } from './nested-write-visitor'
-import type { ORMWriteActionType } from './types'
+import type { SchemaDef } from "@zenstackhq/schema";
+import { NestedReadVisitor } from "./nested-read-visitor";
+import { NestedWriteVisitor } from "./nested-write-visitor";
+import type { ORMWriteActionType } from "./types";
 
 /**
  * Gets models read (including nested ones) given a query args.
@@ -12,16 +12,16 @@ import type { ORMWriteActionType } from './types'
  * @returns
  */
 export function getReadModels(model: string, schema: SchemaDef, args: any) {
-  const result = new Set<string>()
-  result.add(model)
+  const result = new Set<string>();
+  result.add(model);
   const visitor = new NestedReadVisitor(schema, {
     field: (model) => {
-      result.add(model)
-      return true
+      result.add(model);
+      return true;
     },
-  })
-  visitor.visit(model, args)
-  return [...result]
+  });
+  visitor.visit(model, args);
+  return [...result];
 }
 
 /**
@@ -31,21 +31,21 @@ export async function getMutatedModels(
   model: string,
   operation: ORMWriteActionType,
   mutationArgs: any,
-  schema: SchemaDef
+  schema: SchemaDef,
 ) {
-  const result = new Set<string>()
-  result.add(model)
+  const result = new Set<string>();
+  result.add(model);
 
   if (mutationArgs) {
-    const addModel = (model: string) => void result.add(model)
+    const addModel = (model: string) => void result.add(model);
 
     // add models that are cascaded deleted recursively
     const addCascades = (model: string) => {
-      const cascades = new Set<string>()
-      const visited = new Set<string>()
-      collectDeleteCascades(model, schema, cascades, visited)
-      cascades.forEach((m) => addModel(m))
-    }
+      const cascades = new Set<string>();
+      const visited = new Set<string>();
+      collectDeleteCascades(model, schema, cascades, visited);
+      cascades.forEach((m) => addModel(m));
+    };
 
     const visitor = new NestedWriteVisitor(schema, {
       create: addModel,
@@ -58,64 +58,64 @@ export async function getMutatedModels(
       updateMany: addModel,
       upsert: addModel,
       delete: (model) => {
-        addModel(model)
-        addCascades(model)
+        addModel(model);
+        addCascades(model);
       },
       deleteMany: (model) => {
-        addModel(model)
-        addCascades(model)
+        addModel(model);
+        addCascades(model);
       },
-    })
-    await visitor.visit(model, operation, mutationArgs)
+    });
+    await visitor.visit(model, operation, mutationArgs);
   }
 
   // include delegate base models recursively
   result.forEach((m) => {
-    getBaseRecursively(m, schema, result)
-  })
+    getBaseRecursively(m, schema, result);
+  });
 
-  return [...result]
+  return [...result];
 }
 
 function collectDeleteCascades(
   model: string,
   schema: SchemaDef,
   result: Set<string>,
-  visited: Set<string>
+  visited: Set<string>,
 ) {
   if (visited.has(model)) {
     // break circle
-    return
+    return;
   }
-  visited.add(model)
+  visited.add(model);
 
-  const modelDef = schema.models[model]
+  const modelDef = schema.models[model];
   if (!modelDef) {
-    return
+    return;
   }
 
   for (const [modelName, modelDef] of Object.entries(schema.models)) {
     if (!modelDef) {
-      continue
+      continue;
     }
     for (const fieldDef of Object.values(modelDef.fields)) {
-      if (fieldDef.relation?.onDelete === 'Cascade' && fieldDef.type === model) {
+      if (fieldDef.relation?.onDelete === "Cascade" && fieldDef.type === model) {
         if (!result.has(modelName)) {
-          result.add(modelName)
+          result.add(modelName);
         }
-        collectDeleteCascades(modelName, schema, result, visited)
+        collectDeleteCascades(modelName, schema, result, visited);
       }
     }
   }
 }
 
 function getBaseRecursively(model: string, schema: SchemaDef, result: Set<string>) {
-  const modelDef = schema.models[model]
+  const modelDef = schema.models[model];
   if (!modelDef) {
-    return
+    return;
   }
   if (modelDef.baseModel) {
-    result.add(modelDef.baseModel)
-    getBaseRecursively(modelDef.baseModel, schema, result)
+    result.add(modelDef.baseModel);
+    getBaseRecursively(modelDef.baseModel, schema, result);
   }
 }

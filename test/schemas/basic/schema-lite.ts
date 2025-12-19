@@ -5,116 +5,116 @@
 
 /* eslint-disable */
 
-import { type SchemaDef, ExpressionUtils } from '@zenstackhq/orm/schema'
+import { type SchemaDef, ExpressionUtils } from "@zenstackhq/orm/schema";
 export const schema = {
   provider: {
-    type: 'sqlite',
+    type: "sqlite",
   },
   models: {
     User: {
-      name: 'User',
+      name: "User",
       fields: {
         id: {
-          name: 'id',
-          type: 'String',
+          name: "id",
+          type: "String",
           id: true,
-          default: ExpressionUtils.call('cuid'),
+          default: ExpressionUtils.call("cuid"),
         },
         email: {
-          name: 'email',
-          type: 'String',
+          name: "email",
+          type: "String",
           unique: true,
         },
         name: {
-          name: 'name',
-          type: 'String',
+          name: "name",
+          type: "String",
           optional: true,
         },
         posts: {
-          name: 'posts',
-          type: 'Post',
+          name: "posts",
+          type: "Post",
           array: true,
-          relation: { opposite: 'owner' },
+          relation: { opposite: "owner" },
         },
       },
-      idFields: ['id'],
+      idFields: ["id"],
       uniqueFields: {
-        id: { type: 'String' },
-        email: { type: 'String' },
+        id: { type: "String" },
+        email: { type: "String" },
       },
     },
     Post: {
-      name: 'Post',
+      name: "Post",
       fields: {
         id: {
-          name: 'id',
-          type: 'String',
+          name: "id",
+          type: "String",
           id: true,
-          default: ExpressionUtils.call('cuid'),
+          default: ExpressionUtils.call("cuid"),
         },
         title: {
-          name: 'title',
-          type: 'String',
+          name: "title",
+          type: "String",
         },
         owner: {
-          name: 'owner',
-          type: 'User',
+          name: "owner",
+          type: "User",
           optional: true,
-          relation: { opposite: 'posts', fields: ['ownerId'], references: ['id'] },
+          relation: { opposite: "posts", fields: ["ownerId"], references: ["id"] },
         },
         ownerId: {
-          name: 'ownerId',
-          type: 'String',
+          name: "ownerId",
+          type: "String",
           optional: true,
-          foreignKeyFor: ['owner'],
+          foreignKeyFor: ["owner"],
         },
         category: {
-          name: 'category',
-          type: 'Category',
+          name: "category",
+          type: "Category",
           optional: true,
-          relation: { opposite: 'posts', fields: ['categoryId'], references: ['id'] },
+          relation: { opposite: "posts", fields: ["categoryId"], references: ["id"] },
         },
         categoryId: {
-          name: 'categoryId',
-          type: 'String',
+          name: "categoryId",
+          type: "String",
           optional: true,
-          foreignKeyFor: ['category'],
+          foreignKeyFor: ["category"],
         },
       },
-      idFields: ['id'],
+      idFields: ["id"],
       uniqueFields: {
-        id: { type: 'String' },
+        id: { type: "String" },
       },
     },
     Category: {
-      name: 'Category',
+      name: "Category",
       fields: {
         id: {
-          name: 'id',
-          type: 'String',
+          name: "id",
+          type: "String",
           id: true,
-          default: ExpressionUtils.call('cuid'),
+          default: ExpressionUtils.call("cuid"),
         },
         name: {
-          name: 'name',
-          type: 'String',
+          name: "name",
+          type: "String",
           unique: true,
         },
         posts: {
-          name: 'posts',
-          type: 'Post',
+          name: "posts",
+          type: "Post",
           array: true,
-          relation: { opposite: 'category' },
+          relation: { opposite: "category" },
         },
       },
-      idFields: ['id'],
+      idFields: ["id"],
       uniqueFields: {
-        id: { type: 'String' },
-        name: { type: 'String' },
+        id: { type: "String" },
+        name: { type: "String" },
       },
     },
   },
-  authType: 'User',
+  authType: "User",
   plugins: {},
-} as const satisfies SchemaDef
-export type SchemaType = typeof schema
+} as const satisfies SchemaDef;
+export type SchemaType = typeof schema;
