@@ -1,4 +1,4 @@
-import type { GetModels, SchemaDef } from "@zenstackhq/schema"
+import type { GetModels, SchemaDef } from '@zenstackhq/schema'
 import type {
   AggregateArgs,
   AggregateResult,
@@ -23,8 +23,8 @@ import type {
   UpdateManyAndReturnArgs,
   UpdateManyArgs,
   UpsertArgs,
-} from "@zenstackhq/orm"
-import { inject, provide, toValue, type MaybeRefOrGetter, type UnwrapRef } from "vue"
+} from '@zenstackhq/orm'
+import { inject, provide, toValue, type MaybeRefOrGetter, type UnwrapRef } from 'vue'
 import {
   useQuery,
   useInfiniteQuery,
@@ -37,8 +37,8 @@ import {
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryReturn,
   type EntryKey,
-} from "@pinia/colada"
-import { lowerCaseFirst } from "@zenstackhq/common-helpers"
+} from '@pinia/colada'
+import { lowerCaseFirst } from '@zenstackhq/common-helpers'
 import {
   DEFAULT_QUERY_ENDPOINT,
   getKey,
@@ -50,11 +50,11 @@ import {
   setupOptimisticUpdate,
   setupInvalidation,
   marshal,
-} from "./utils/common"
-import type { TrimDelegateModelOperations } from "./utils/types"
+} from './utils/common'
+import type { TrimDelegateModelOperations } from './utils/types'
 
-export type { FetchFn } from "./utils/common"
-export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
+export type { FetchFn } from './utils/common'
+export const PiniaColadaContextKey = 'zenstack-pinia-colada-context'
 
 /**
  * Provide context for query settings.
@@ -76,9 +76,12 @@ export type ClientHooks<Schema extends SchemaDef> = {
   [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model>
 }
 
-export type ModelQueryOptions<T> = Omit<UseQueryOptions<T>, "key" | "query"> & ExtraQueryOptions
+export type ModelQueryOptions<T> = Omit<UseQueryOptions<T>, 'key' | 'query'> & ExtraQueryOptions
 
-export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<{ items: T[]; nextCursor?: unknown }, Error> & {
+export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<
+  { items: T[]; nextCursor?: unknown },
+  Error
+> & {
   key: EntryKey
 }
 
@@ -86,11 +89,11 @@ export type ModelQueryResult<T> = UseQueryReturn<T> & { key: EntryKey }
 
 export type ModelInfiniteQueryOptions<T> = Omit<
   UseInfiniteQueryOptions<T[], Error, T[] | undefined, { items: T[]; nextCursor?: unknown }>,
-  "key" | "query" | "initialPage" | "merge"
+  'key' | 'query' | 'initialPage' | 'merge'
 >
 
 export type ModelMutationOptions<T, TArgs> = MaybeRefOrGetter<
-  Omit<UnwrapRef<UseMutationOptions<T, TArgs>>, "mutation"> & ExtraMutationOptions
+  Omit<UnwrapRef<UseMutationOptions<T, TArgs>>, 'mutation'> & ExtraMutationOptions
 >
 
 export type ModelMutationResult<T, TArgs> = UseMutationReturn<T, TArgs, Error>
@@ -101,12 +104,18 @@ export type ModelMutationModelResult<
   TArgs,
   Array extends boolean = false,
 > = Omit<
-  ModelMutationResult<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, TArgs, false, Array>, TArgs>,
-  "mutateAsync"
+  ModelMutationResult<
+    SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, TArgs, false, Array>,
+    TArgs
+  >,
+  'mutateAsync'
 > & {
   mutateAsync<T extends TArgs>(
     args: T,
-    options?: ModelMutationOptions<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>, T>,
+    options?: ModelMutationOptions<
+      SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>,
+      T
+    >
   ): Promise<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>>
 }
 
@@ -117,79 +126,82 @@ type MResult<Schema extends SchemaDef, Model extends GetModels<Schema>, T> = Sim
   T
 >
 
-export type ModelQueryHooks<Schema extends SchemaDef, Model extends GetModels<Schema>> = TrimDelegateModelOperations<
+export type ModelQueryHooks<
+  Schema extends SchemaDef,
+  Model extends GetModels<Schema>,
+> = TrimDelegateModelOperations<
   Schema,
   Model,
   {
     useFindUnique<T extends FindUniqueArgs<Schema, Model>>(
       args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
+      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>
     ): ModelQueryResult<MResult<Schema, Model, T> | null>
 
     useFindFirst<T extends FindFirstArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
+      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>
     ): ModelQueryResult<MResult<Schema, Model, T> | null>
 
     useFindMany<T extends FindManyArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T>[]>,
+      options?: ModelQueryOptions<MResult<Schema, Model, T>[]>
     ): ModelQueryResult<MResult<Schema, Model, T>[]>
 
     useInfiniteFindMany<T extends FindManyArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: ModelInfiniteQueryOptions<MResult<Schema, Model, T>[]>,
+      options?: ModelInfiniteQueryOptions<MResult<Schema, Model, T>[]>
     ): ModelInfiniteQueryResult<MResult<Schema, Model, T>[]>
 
     useCreate<T extends CreateArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>
     ): ModelMutationModelResult<Schema, Model, T>
 
     useCreateMany<T extends CreateManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
+      options?: ModelMutationOptions<BatchResult, T>
     ): ModelMutationResult<BatchResult, T>
 
     useCreateManyAndReturn<T extends CreateManyAndReturnArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>
     ): ModelMutationModelResult<Schema, Model, T, true>
 
     useUpdate<T extends UpdateArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>
     ): ModelMutationModelResult<Schema, Model, T>
 
     useUpdateMany<T extends UpdateManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
+      options?: ModelMutationOptions<BatchResult, T>
     ): ModelMutationResult<BatchResult, T>
 
     useUpdateManyAndReturn<T extends UpdateManyAndReturnArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>
     ): ModelMutationModelResult<Schema, Model, T, true>
 
     useUpsert<T extends UpsertArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>
     ): ModelMutationModelResult<Schema, Model, T>
 
     useDelete<T extends DeleteArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
+      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>
     ): ModelMutationModelResult<Schema, Model, T>
 
     useDeleteMany<T extends DeleteManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
+      options?: ModelMutationOptions<BatchResult, T>
     ): ModelMutationResult<BatchResult, T>
 
     useCount<T extends CountArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<Subset<T, CountArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<CountResult<Schema, Model, T>>,
+      options?: ModelQueryOptions<CountResult<Schema, Model, T>>
     ): ModelQueryResult<CountResult<Schema, Model, T>>
 
     useAggregate<T extends AggregateArgs<Schema, Model>>(
       args: MaybeRefOrGetter<Subset<T, AggregateArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<AggregateResult<Schema, Model, T>>,
+      options?: ModelQueryOptions<AggregateResult<Schema, Model, T>>
     ): ModelQueryResult<AggregateResult<Schema, Model, T>>
 
     useGroupBy<T extends GroupByArgs<Schema, Model>>(
       args: MaybeRefOrGetter<Subset<T, GroupByArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<GroupByResult<Schema, Model, T>>,
+      options?: ModelQueryOptions<GroupByResult<Schema, Model, T>>
     ): ModelQueryResult<GroupByResult<Schema, Model, T>>
   }
 >
@@ -199,7 +211,7 @@ export function useInternalQuery<TData>(
   model: string,
   operation: string,
   args?: MaybeRefOrGetter<unknown>,
-  options?: Omit<UseQueryOptions<TData>, "key" | "query"> & ExtraQueryOptions,
+  options?: Omit<UseQueryOptions<TData>, 'key' | 'query'> & ExtraQueryOptions
 ) {
   const { optimisticUpdate, ...restOptions } = options ?? {}
   const { endpoint, fetch } = getQuerySettings()
@@ -231,7 +243,9 @@ export function useInternalInfiniteQuery<TData>(
   model: string,
   operation: string,
   args: MaybeRefOrGetter<unknown>,
-  options: Omit<UseInfiniteQueryOptions<TData, Error>, "key" | "query" | "initialPage" | "merge"> | undefined,
+  options:
+    | Omit<UseInfiniteQueryOptions<TData, Error>, 'key' | 'query' | 'initialPage' | 'merge'>
+    | undefined
 ) {
   const { endpoint, fetch } = getQuerySettings()
 
@@ -253,9 +267,7 @@ export function useInternalInfiniteQuery<TData>(
     query: async (pages: PageState, { signal }: { signal: AbortSignal }): Promise<TData[]> => {
       const argsValue = toValue(args) as Record<string, unknown> | undefined
       // Build query args with cursor for pagination
-      const pageArgs = pages.nextCursor
-        ? { ...argsValue, cursor: pages.nextCursor }
-        : argsValue
+      const pageArgs = pages.nextCursor ? { ...argsValue, cursor: pages.nextCursor } : argsValue
       const reqUrl = makeUrl(endpoint, model, operation, pageArgs)
       return fetcher<TData[]>(reqUrl, { signal }, fetch)
     },
@@ -296,19 +308,24 @@ export function useInternalInfiniteQuery<TData>(
 export function useInternalMutation<TArgs, R = unknown>(
   schema: SchemaDef,
   model: string,
-  method: "POST" | "PUT" | "DELETE",
+  method: 'POST' | 'PUT' | 'DELETE',
   operation: string,
-  options?: MaybeRefOrGetter<Omit<UnwrapRef<UseMutationOptions<R, TArgs>>, "mutation"> & ExtraMutationOptions>,
+  options?: MaybeRefOrGetter<
+    Omit<UnwrapRef<UseMutationOptions<R, TArgs>>, 'mutation'> & ExtraMutationOptions
+  >
 ) {
   const { endpoint, fetch, logging } = getQuerySettings()
   const queryCache = useQueryCache()
   const mutation = (data: TArgs): Promise<R> => {
-    const reqUrl = method === "DELETE" ? makeUrl(endpoint, model, operation, data) : makeUrl(endpoint, model, operation)
+    const reqUrl =
+      method === 'DELETE'
+        ? makeUrl(endpoint, model, operation, data)
+        : makeUrl(endpoint, model, operation)
     const fetchInit: RequestInit = {
       method,
-      ...(method !== "DELETE" && {
+      ...(method !== 'DELETE' && {
         headers: {
-          "content-type": "application/json",
+          'content-type': 'application/json',
         },
         body: marshal(data),
       }),
@@ -333,7 +350,7 @@ export function useInternalMutation<TArgs, R = unknown>(
             predicate: (entry) => predicate({ key: entry.key as readonly unknown[] }),
           })
         },
-        logging,
+        logging
       )
     }
 
@@ -364,7 +381,7 @@ export function useInternalMutation<TArgs, R = unknown>(
               })
             }
           : undefined,
-        logging,
+        logging
       )
     }
   }
@@ -377,7 +394,10 @@ export function useInternalMutation<TArgs, R = unknown>(
  */
 export function useClientQueries<Schema extends SchemaDef>(schema: Schema): ClientHooks<Schema> {
   return Object.keys(schema.models).reduce((acc, model) => {
-    ;(acc as Record<string, unknown>)[lowerCaseFirst(model)] = useModelQueries(schema, model as GetModels<Schema>)
+    ;(acc as Record<string, unknown>)[lowerCaseFirst(model)] = useModelQueries(
+      schema,
+      model as GetModels<Schema>
+    )
     return acc
   }, {} as ClientHooks<Schema>)
 }
@@ -387,9 +407,11 @@ export function useClientQueries<Schema extends SchemaDef>(schema: Schema): Clie
  */
 export function useModelQueries<Schema extends SchemaDef, Model extends GetModels<Schema>>(
   schema: Schema,
-  model: Model,
+  model: Model
 ): ModelQueryHooks<Schema, Model> {
-  const modelDef = Object.values(schema.models).find((m) => m.name.toLowerCase() === model.toLowerCase())
+  const modelDef = Object.values(schema.models).find(
+    (m) => m.name.toLowerCase() === model.toLowerCase()
+  )
   if (!modelDef) {
     throw new Error(`Model "${model}" not found in schema`)
   }
@@ -398,75 +420,75 @@ export function useModelQueries<Schema extends SchemaDef, Model extends GetModel
 
   return {
     useFindUnique: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findUnique", args, options)
+      return useInternalQuery(schema, modelName, 'findUnique', args, options)
     },
 
     useFindFirst: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findFirst", args, options)
+      return useInternalQuery(schema, modelName, 'findFirst', args, options)
     },
 
     useFindMany: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findMany", args, options)
+      return useInternalQuery(schema, modelName, 'findMany', args, options)
     },
 
     useInfiniteFindMany: (args, options?) => {
       return useInternalInfiniteQuery(
         schema,
         modelName,
-        "findMany",
+        'findMany',
         args,
-        options as Omit<UseInfiniteQueryOptions<unknown, Error>, "key" | "query" | "initialPageParam"> | undefined,
+        options as
+          | Omit<UseInfiniteQueryOptions<unknown, Error>, 'key' | 'query' | 'initialPageParam'>
+          | undefined
       )
     },
 
     useCreate: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "create", options)
+      return useInternalMutation(schema, modelName, 'POST', 'create', options)
     },
 
     useCreateMany: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "createMany", options)
+      return useInternalMutation(schema, modelName, 'POST', 'createMany', options)
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useCreateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "createManyAndReturn", options)
+      return useInternalMutation(schema, modelName, 'POST', 'createManyAndReturn', options)
     },
 
     useUpdate: (options?) => {
-      return useInternalMutation(schema, modelName, "PUT", "update", options)
+      return useInternalMutation(schema, modelName, 'PUT', 'update', options)
     },
 
     useUpdateMany: (options?) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateMany", options)
+      return useInternalMutation(schema, modelName, 'PUT', 'updateMany', options)
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useUpdateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateManyAndReturn", options)
+      return useInternalMutation(schema, modelName, 'PUT', 'updateManyAndReturn', options)
     },
 
     useUpsert: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "upsert", options)
+      return useInternalMutation(schema, modelName, 'POST', 'upsert', options)
     },
 
     useDelete: (options?) => {
-      return useInternalMutation(schema, modelName, "DELETE", "delete", options)
+      return useInternalMutation(schema, modelName, 'DELETE', 'delete', options)
     },
 
     useDeleteMany: (options?) => {
-      return useInternalMutation(schema, modelName, "DELETE", "deleteMany", options)
+      return useInternalMutation(schema, modelName, 'DELETE', 'deleteMany', options)
     },
 
     useCount: (args, options?) => {
-      return useInternalQuery(schema, modelName, "count", args, options)
+      return useInternalQuery(schema, modelName, 'count', args, options)
     },
 
     useAggregate: (args, options?) => {
-      return useInternalQuery(schema, modelName, "aggregate", args, options)
+      return useInternalQuery(schema, modelName, 'aggregate', args, options)
     },
 
     useGroupBy: (args, options?) => {
-      return useInternalQuery(schema, modelName, "groupBy", args, options)
+      return useInternalQuery(schema, modelName, 'groupBy', args, options)
     },
   } as ModelQueryHooks<Schema, Model>
 }

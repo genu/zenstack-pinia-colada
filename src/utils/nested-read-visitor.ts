@@ -1,8 +1,12 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
-import type { FieldDef, SchemaDef } from "@zenstackhq/schema"
+import type { FieldDef, SchemaDef } from '@zenstackhq/schema'
 
 export type NestedReadVisitorCallback = {
-  field?: (model: string, field: FieldDef | undefined, kind: "include" | "select" | undefined, args: unknown) => void | boolean
+  field?: (
+    model: string,
+    field: FieldDef | undefined,
+    kind: 'include' | 'select' | undefined,
+    args: unknown
+  ) => void | boolean
 }
 
 /**
@@ -11,10 +15,15 @@ export type NestedReadVisitorCallback = {
 export class NestedReadVisitor {
   constructor(
     private readonly schema: SchemaDef,
-    private readonly callback: NestedReadVisitorCallback,
+    private readonly callback: NestedReadVisitorCallback
   ) {}
 
-  doVisit(model: string, field: FieldDef | undefined, kind: "include" | "select" | undefined, args: unknown) {
+  doVisit(
+    model: string,
+    field: FieldDef | undefined,
+    kind: 'include' | 'select' | undefined,
+    args: unknown
+  ) {
     if (this.callback.field) {
       const r = this.callback.field(model, field, kind, args)
       if (r === false) {
@@ -22,23 +31,23 @@ export class NestedReadVisitor {
       }
     }
 
-    if (!args || typeof args !== "object") {
+    if (!args || typeof args !== 'object') {
       return
     }
 
     let selectInclude: any
-    let nextKind: "select" | "include" | undefined
+    let nextKind: 'select' | 'include' | undefined
     if ((args as any).select) {
       selectInclude = (args as any).select
-      nextKind = "select"
+      nextKind = 'select'
     } else if ((args as any).include) {
       selectInclude = (args as any).include
-      nextKind = "include"
+      nextKind = 'include'
     }
 
-    if (selectInclude && typeof selectInclude === "object") {
+    if (selectInclude && typeof selectInclude === 'object') {
       for (const [k, v] of Object.entries(selectInclude)) {
-        if (k === "_count" && typeof v === "object" && v) {
+        if (k === '_count' && typeof v === 'object' && v) {
           // recurse into { _count: { ... } }
           this.doVisit(model, field, kind, v)
         } else {

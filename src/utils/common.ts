@@ -1,19 +1,19 @@
-import { lowerCaseFirst } from "@zenstackhq/common-helpers"
-import type { SchemaDef } from "@zenstackhq/schema"
-import { applyMutation } from "./mutator"
-import { getMutatedModels, getReadModels } from "./query-analysis"
-import { deserialize, serialize } from "./serialization"
-import type { ORMWriteActionType } from "./types"
+import { lowerCaseFirst } from '@zenstackhq/common-helpers'
+import type { SchemaDef } from '@zenstackhq/schema'
+import { applyMutation } from './mutator'
+import { getMutatedModels, getReadModels } from './query-analysis'
+import { deserialize, serialize } from './serialization'
+import type { ORMWriteActionType } from './types'
 
 /**
  * The default query endpoint.
  */
-export const DEFAULT_QUERY_ENDPOINT = "/api/model"
+export const DEFAULT_QUERY_ENDPOINT = '/api/model'
 
 /**
  * Prefix for query keys.
  */
-export const QUERY_KEY_PREFIX = "zenstack"
+export const QUERY_KEY_PREFIX = 'zenstack'
 
 /**
  * Function signature for `fetch`.
@@ -45,7 +45,7 @@ export type OptimisticDataProviderResult = {
    *   - Skip: skip the optimistic update for this query.
    *   - ProceedDefault: proceed with the default optimistic update.
    */
-  kind: "Update" | "Skip" | "ProceedDefault"
+  kind: 'Update' | 'Skip' | 'ProceedDefault'
 
   /**
    * Data to update the query cache. Only applicable if `kind` is 'Update'.
@@ -125,16 +125,20 @@ export type APIContext = {
   logging?: boolean
 }
 
-export async function fetcher<R>(url: string, options?: RequestInit, customFetch?: FetchFn): Promise<R> {
+export async function fetcher<R>(
+  url: string,
+  options?: RequestInit,
+  customFetch?: FetchFn
+): Promise<R> {
   const _fetch = customFetch ?? fetch
   const res = await _fetch(url, options)
   if (!res.ok) {
     const errData = unmarshal(await res.text())
-    if (errData.error?.rejectedByPolicy && errData.error?.rejectReason === "cannot-read-back") {
+    if (errData.error?.rejectedByPolicy && errData.error?.rejectReason === 'cannot-read-back') {
       // policy doesn't allow mutation result to be read back, just return undefined
       return undefined as any
     }
-    const error: QueryError = new Error("An error occurred while fetching the data.")
+    const error: QueryError = new Error('An error occurred while fetching the data.')
     error.info = errData.error
     error.status = res.status
     throw error
@@ -172,7 +176,10 @@ export function getKey(
   model: string,
   operation: string,
   args: unknown,
-  options: { infinite: boolean; optimisticUpdate: boolean } = { infinite: false, optimisticUpdate: true },
+  options: { infinite: boolean; optimisticUpdate: boolean } = {
+    infinite: false,
+    optimisticUpdate: true,
+  }
 ): Key {
   const infinite = options.infinite
   // infinite query doesn't support optimistic updates
@@ -191,7 +198,7 @@ export function marshal(value: unknown) {
 
 export function unmarshal(value: string) {
   const parsed = JSON.parse(value)
-  if (typeof parsed === "object" && parsed?.data && parsed?.meta?.serialization) {
+  if (typeof parsed === 'object' && parsed?.data && parsed?.meta?.serialization) {
     const deserializedData = deserialize(parsed.data, parsed.meta.serialization)
     return { ...parsed, data: deserializedData }
   } else {
@@ -220,15 +227,14 @@ type InvalidateFunc = (predicate: InvalidationPredicate) => Promise<void>
  * Pinia Colada mutation hook signatures.
  * @see https://pinia-colada.esm.dev/guide/mutations.html
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type MutationHooks = Record<string, any> & {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onMutate?: (...args: any[]) => any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onSuccess?: (...args: any[]) => any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onError?: (...args: any[]) => any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onSettled?: (...args: any[]) => any
 }
 
@@ -239,13 +245,19 @@ export function setupInvalidation(
   schema: SchemaDef,
   options: MutationHooks,
   invalidate: InvalidateFunc,
-  logging = false,
+  logging = false
 ) {
   const origOnSuccess = options?.onSuccess
   options.onSuccess = async (...args: unknown[]) => {
     // Pinia Colada: onSuccess(data, vars, context) - vars is second arg
     const vars = args[1]
-    const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, vars, schema, logging)
+    const predicate = await getInvalidationPredicate(
+      model,
+      operation as ORMWriteActionType,
+      vars,
+      schema,
+      logging
+    )
     await invalidate(predicate)
     return origOnSuccess?.(...args)
   }
@@ -257,7 +269,7 @@ async function getInvalidationPredicate(
   operation: ORMWriteActionType,
   mutationArgs: unknown,
   schema: SchemaDef,
-  logging = false,
+  logging = false
 ) {
   const mutatedModels = await getMutatedModels(model, operation, mutationArgs, schema)
 
@@ -267,7 +279,9 @@ async function getInvalidationPredicate(
     if (mutatedModels.includes(queryModel)) {
       // direct match
       if (logging) {
-        console.log(`Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`)
+        console.log(
+          `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`
+        )
       }
       return true
     }
@@ -276,7 +290,9 @@ async function getInvalidationPredicate(
       // traverse query args to find nested reads that match the model under mutation
       if (findNestedRead(queryModel, mutatedModels, schema, args)) {
         if (logging) {
-          console.log(`Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`)
+          console.log(
+            `Invalidating query ${JSON.stringify(key)} due to mutation "${model}.${operation}"`
+          )
         }
         return true
       }
@@ -287,7 +303,12 @@ async function getInvalidationPredicate(
 }
 
 // find nested reads that match the given models
-function findNestedRead(visitingModel: string, targetModels: string[], schema: SchemaDef, args: any) {
+function findNestedRead(
+  visitingModel: string,
+  targetModels: string[],
+  schema: SchemaDef,
+  args: any
+) {
   const modelsRead = getReadModels(visitingModel, schema, args)
   return targetModels.some((m) => modelsRead.includes(m))
 }
@@ -313,7 +334,7 @@ export function setupOptimisticUpdate(
   cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
   invalidate?: InvalidateFunc,
-  logging = false,
+  logging = false
 ) {
   const origOnMutate = options?.onMutate
   const origOnSettled = options?.onSettled
@@ -322,7 +343,16 @@ export function setupOptimisticUpdate(
   options.onMutate = async (...args: unknown[]) => {
     // Pinia Colada: onMutate(vars, context) - vars is first arg
     const vars = args[0]
-    await optimisticUpdate(model, operation as ORMWriteActionType, vars, options, schema, cacheEntries, setCache, logging)
+    await optimisticUpdate(
+      model,
+      operation as ORMWriteActionType,
+      vars,
+      options,
+      schema,
+      cacheEntries,
+      setCache,
+      logging
+    )
     return origOnMutate?.(...args)
   }
 
@@ -331,7 +361,13 @@ export function setupOptimisticUpdate(
     if (invalidate) {
       // Pinia Colada: onSettled(data, error, vars, context) - vars is third arg
       const vars = args[2]
-      const predicate = await getInvalidationPredicate(model, operation as ORMWriteActionType, vars, schema, logging)
+      const predicate = await getInvalidationPredicate(
+        model,
+        operation as ORMWriteActionType,
+        vars,
+        schema,
+        logging
+      )
       await invalidate(predicate)
     }
     return origOnSettled?.(...args)
@@ -347,7 +383,7 @@ async function optimisticUpdate(
   schema: SchemaDef,
   cacheEntries: CacheEntry,
   setCache: SetCacheFunc,
-  logging = false,
+  logging = false
 ) {
   for (const cacheItem of cacheEntries) {
     const {
@@ -384,13 +420,13 @@ async function optimisticUpdate(
         mutationArgs,
       })
 
-      if (providerResult?.kind === "Skip") {
+      if (providerResult?.kind === 'Skip') {
         // skip
         if (logging) {
           console.log(`Skipping optimistic update for ${JSON.stringify(key)} due to provider`)
         }
         continue
-      } else if (providerResult?.kind === "Update") {
+      } else if (providerResult?.kind === 'Update') {
         // update cache
         if (logging) {
           console.log(`Optimistically updating query ${JSON.stringify(key)} due to provider`)
@@ -409,13 +445,15 @@ async function optimisticUpdate(
       mutationOp as ORMWriteActionType,
       mutationArgs,
       schema,
-      logging,
+      logging
     )
 
     if (mutatedData !== undefined) {
       // mutation applicable to this query, update cache
       if (logging) {
-        console.log(`Optimistically updating query ${JSON.stringify(key)} due to mutation "${mutationModel}.${mutationOp}"`)
+        console.log(
+          `Optimistically updating query ${JSON.stringify(key)} due to mutation "${mutationModel}.${mutationOp}"`
+        )
       }
       setCache(key, mutatedData)
     }

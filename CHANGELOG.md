@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## v0.1.5
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.4...v0.1.5)
@@ -45,7 +44,6 @@
 
 ## v0.1.1
 
-
 ### 🩹 Fixes
 
 - Update import paths and query handling in README.md ([12fdf55](https://github.com/genu/zenstack-pinia-colada/commit/12fdf55))
@@ -58,4 +56,3 @@
 ### ❤️ Contributors
 
 - Eugen Istoc <eugenistoc@gmail.com>
-

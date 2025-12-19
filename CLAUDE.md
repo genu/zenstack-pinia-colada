@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Pinia Colada client library for ZenStack v3, providing type-safe data fetching hooks for Vue 3 applications. It bridges ZenStack's CRUD APIs with Pinia Colada's smart caching layer.
 
 **Tech Stack:**
+
 - Vue 3 + Pinia + Pinia Colada
 - TypeScript (ESM-only)
 - ZenStack for backend ORM/access control
@@ -15,12 +16,14 @@ This is a Pinia Colada client library for ZenStack v3, providing type-safe data 
 ## Development Commands
 
 ### Build
+
 ```bash
 pnpm run build          # Build the library
 pnpm run watch          # Build in watch mode
 ```
 
 ### Testing
+
 ```bash
 pnpm test               # Run all tests
 pnpm test:generate      # Generate test schema from ZenStack
@@ -28,12 +31,14 @@ pnpm test:typecheck     # Type-check test files only
 ```
 
 ### Code Quality
+
 ```bash
 pnpm run lint           # Lint source files
 pnpm run changelog      # Generate changelog
 ```
 
 ### Publishing
+
 ```bash
 pnpm run release        # Generate changelog + publish to npm
 pnpm run release:push-tags  # Push git tags after release
@@ -44,16 +49,19 @@ pnpm run release:push-tags  # Push git tags after release
 ### Core Concepts
 
 **Hook Factories (`useClientQueries`, `useModelQueries`):**
+
 - Located in `src/index.ts`
 - Generate type-safe hooks for each model in the ZenStack schema
 - Return query hooks (useFindMany, useFindUnique, etc.) and mutation hooks (useCreate, useUpdate, etc.)
 
 **Internal Implementations:**
+
 - `useInternalQuery`: Wraps Pinia Colada's `useQuery` with ZenStack-specific logic
 - `useInternalInfiniteQuery`: Handles paginated queries
 - `useInternalMutation`: Wraps Pinia Colada's `useMutation` with automatic cache invalidation
 
 **Pinia Colada API Changes from TanStack Query:**
+
 - `queryKey` → `key`
 - `queryFn` → `query` (receives `{ signal }` for regular queries, `{ signal, nextPage }` for infinite)
 - `mutationFn` → `mutation`
@@ -62,22 +70,26 @@ pnpm run release:push-tags  # Push git tags after release
 ### Key Utilities (`src/utils/`)
 
 **`common.ts`:**
+
 - HTTP fetching, query key generation, URL building
 - `setupOptimisticUpdate`: Automatically updates cache before mutations complete
 - `setupInvalidation`: Automatically invalidates related queries after mutations
 - Uses Pinia Colada's cache API: `getEntries()`, `setQueryData()`, `invalidateQueries()`, `cancelQueries()`
 
 **`query-analysis.ts`:**
+
 - `getReadModels`: Analyzes which models a query reads from (handles include/select)
 - `getMutatedModels`: Determines which models are affected by a mutation
 - Critical for automatic cache invalidation
 
 **`mutator.ts` / `nested-*-visitor.ts`:**
+
 - Client-side mutation logic for optimistic updates
 - Applies mutations to cached data using visitor pattern
 - Handles nested creates, updates, and relations
 
 **`serialization.ts`:**
+
 - SuperJSON-based serialization for Prisma types
 - Custom serializers for `Decimal` (decimal.js) and `Uint8Array` (Prisma Bytes)
 - Uses browser-native `btoa`/`atob` (no Node.js Buffer dependency)
@@ -85,8 +97,9 @@ pnpm run release:push-tags  # Push git tags after release
 ### Cache Key Structure
 
 Query keys follow the pattern:
+
 ```typescript
-['zenstack', modelName, operation, args]
+;['zenstack', modelName, operation, args]
 ```
 
 Example: `['zenstack', 'user', 'findMany', { where: { ... } }]`
@@ -94,11 +107,12 @@ Example: `['zenstack', 'user', 'findMany', { where: { ... } }]`
 ### Context Injection
 
 Users can optionally provide query settings via Vue's provide/inject:
+
 ```typescript
 provideQuerySettingsContext({
-  endpoint: '/api/model',  // API endpoint
-  fetch: customFetch,       // Custom fetch function
-  logging: true             // Enable debug logging
+  endpoint: '/api/model', // API endpoint
+  fetch: customFetch, // Custom fetch function
+  logging: true, // Enable debug logging
 })
 ```
 
@@ -121,6 +135,7 @@ The wrapper functions in `useModelQueries` use `any` types intentionally - the a
 ### Cache Entry Mapping
 
 Pinia Colada entries have a different structure than TanStack Query:
+
 - Property is `entry.key` (not `queryKey`)
 - State is `entry.state.value.data` (reactive ref that needs `.value`)
 - Predicate filtering requires wrapping to adapt the structure
@@ -132,6 +147,7 @@ Test schemas are in `test/schemas/` as `.zmodel` files. The `scripts/generate.ts
 ## Build Output
 
 The library builds to ESM-only format:
+
 - `dist/index.mjs` - Main bundle
 - `dist/index.d.mts` - TypeScript declarations
 - Source maps for both

@@ -1,7 +1,7 @@
-import { clone, enumerate, invariant, zip } from "@zenstackhq/common-helpers"
-import type { FieldDef, SchemaDef } from "@zenstackhq/schema"
-import { NestedWriteVisitor } from "./nested-write-visitor"
-import type { ORMWriteActionType } from "./types"
+import { clone, enumerate, invariant, zip } from '@zenstackhq/common-helpers'
+import type { FieldDef, SchemaDef } from '@zenstackhq/schema'
+import { NestedWriteVisitor } from './nested-write-visitor'
+import type { ORMWriteActionType } from './types'
 
 /**
  * Tries to apply a mutation to a query result.
@@ -24,18 +24,26 @@ export async function applyMutation(
   mutationOp: ORMWriteActionType,
   mutationArgs: any,
   schema: SchemaDef,
-  logging: boolean,
+  logging: boolean
 ) {
-  if (!queryData || (typeof queryData !== "object" && !Array.isArray(queryData))) {
+  if (!queryData || (typeof queryData !== 'object' && !Array.isArray(queryData))) {
     return undefined
   }
 
-  if (!queryOp.startsWith("find")) {
+  if (!queryOp.startsWith('find')) {
     // only findXXX results are applicable
     return undefined
   }
 
-  return await doApplyMutation(queryModel, queryData, mutationModel, mutationOp, mutationArgs, schema, logging)
+  return await doApplyMutation(
+    queryModel,
+    queryData,
+    mutationModel,
+    mutationOp,
+    mutationArgs,
+    schema,
+    logging
+  )
 }
 
 async function doApplyMutation(
@@ -45,7 +53,7 @@ async function doApplyMutation(
   mutationOp: ORMWriteActionType,
   mutationArgs: any,
   schema: SchemaDef,
-  logging: boolean,
+  logging: boolean
 ) {
   let resultData = queryData
   let updated = false
@@ -128,15 +136,23 @@ async function doApplyMutation(
       const item = resultData[i]
       if (
         !item ||
-        typeof item !== "object" ||
+        typeof item !== 'object' ||
         item.$optimistic // skip items already optimistically updated
       ) {
         continue
       }
 
-      const r = await doApplyMutation(queryModel, item, mutationModel, mutationOp, mutationArgs, schema, logging)
+      const r = await doApplyMutation(
+        queryModel,
+        item,
+        mutationModel,
+        mutationOp,
+        mutationArgs,
+        schema,
+        logging
+      )
 
-      if (r && typeof r === "object") {
+      if (r && typeof r === 'object') {
         if (!arrayCloned) {
           resultData = [...resultData]
           arrayCloned = true
@@ -145,7 +161,7 @@ async function doApplyMutation(
         updated = true
       }
     }
-  } else if (resultData !== null && typeof resultData === "object") {
+  } else if (resultData !== null && typeof resultData === 'object') {
     // Clone resultData to prevent mutations affecting the loop
     const currentData = { ...resultData }
 
@@ -156,9 +172,17 @@ async function doApplyMutation(
         continue
       }
 
-      const r = await doApplyMutation(fieldDef.type, value, mutationModel, mutationOp, mutationArgs, schema, logging)
+      const r = await doApplyMutation(
+        fieldDef.type,
+        value,
+        mutationModel,
+        mutationOp,
+        mutationArgs,
+        schema,
+        logging
+      )
 
-      if (r && typeof r === "object") {
+      if (r && typeof r === 'object') {
         resultData = { ...resultData, [key]: r }
         updated = true
       }
@@ -168,7 +192,13 @@ async function doApplyMutation(
   return updated ? resultData : undefined
 }
 
-function createMutate(queryModel: string, currentData: any, newData: any, schema: SchemaDef, logging: boolean) {
+function createMutate(
+  queryModel: string,
+  currentData: any,
+  newData: any,
+  schema: SchemaDef,
+  logging: boolean
+) {
   if (!newData) {
     return undefined
   }
@@ -191,17 +221,17 @@ function createMutate(queryModel: string, currentData: any, newData: any, schema
     if (newDataFields.includes(name)) {
       insert[name] = clone(newData[name])
     } else {
-      const defaultAttr = field.attributes?.find((attr) => attr.name === "@default")
-      if (field.type === "DateTime") {
+      const defaultAttr = field.attributes?.find((attr) => attr.name === '@default')
+      if (field.type === 'DateTime') {
         // default value for DateTime field
-        if (defaultAttr || field.attributes?.some((attr) => attr.name === "@updatedAt")) {
+        if (defaultAttr || field.attributes?.some((attr) => attr.name === '@updatedAt')) {
           insert[name] = new Date()
           return
         }
       }
 
       const defaultArg = defaultAttr?.args?.[0]?.value
-      if (defaultArg?.kind === "literal") {
+      if (defaultArg?.kind === 'literal') {
         // other default value
         insert[name] = defaultArg.value
       }
@@ -212,13 +242,13 @@ function createMutate(queryModel: string, currentData: any, newData: any, schema
   const idFields = getIdFields(schema, queryModel)
   idFields.forEach((f) => {
     if (insert[f.name] === undefined) {
-      if (f.type === "Int" || f.type === "BigInt") {
+      if (f.type === 'Int' || f.type === 'BigInt') {
         const currMax = Array.isArray(currentData)
           ? Math.max(
               ...[...currentData].map((item) => {
                 const idv = parseInt(item[f.name])
                 return isNaN(idv) ? 0 : idv
-              }),
+              })
             )
           : 0
         insert[f.name] = currMax + 1
@@ -242,17 +272,17 @@ function updateMutate(
   mutateModel: string,
   mutateArgs: any,
   schema: SchemaDef,
-  logging: boolean,
+  logging: boolean
 ) {
-  if (!currentData || typeof currentData !== "object") {
+  if (!currentData || typeof currentData !== 'object') {
     return undefined
   }
 
-  if (!mutateArgs?.where || typeof mutateArgs.where !== "object") {
+  if (!mutateArgs?.where || typeof mutateArgs.where !== 'object') {
     return undefined
   }
 
-  if (!mutateArgs?.data || typeof mutateArgs.data !== "object") {
+  if (!mutateArgs?.data || typeof mutateArgs.data !== 'object') {
     return undefined
   }
 
@@ -307,7 +337,7 @@ function upsertMutate(
   model: string,
   args: { where: object; create: any; update: any },
   schema: SchemaDef,
-  logging: boolean,
+  logging: boolean
 ) {
   let updated = false
   let resultData = currentData
@@ -322,11 +352,15 @@ function upsertMutate(
         model,
         { where: args.where, data: args.update },
         schema,
-        logging,
+        logging
       )
       if (updateResult) {
         // replace the found item with updated item
-        resultData = [...resultData.slice(0, foundIndex), updateResult, ...resultData.slice(foundIndex + 1)]
+        resultData = [
+          ...resultData.slice(0, foundIndex),
+          updateResult,
+          ...resultData.slice(foundIndex + 1),
+        ]
         updated = true
       }
     } else {
@@ -338,7 +372,14 @@ function upsertMutate(
     }
   } else {
     // try update only
-    const updateResult = updateMutate(queryModel, resultData, model, { where: args.where, data: args.update }, schema, logging)
+    const updateResult = updateMutate(
+      queryModel,
+      resultData,
+      model,
+      { where: args.where, data: args.update },
+      schema,
+      logging
+    )
     if (updateResult) {
       resultData = updateResult
       updated = true
@@ -354,7 +395,7 @@ function deleteMutate(
   mutateModel: string,
   mutateArgs: any,
   schema: SchemaDef,
-  logging: boolean,
+  logging: boolean
 ) {
   // TODO: handle mutation of nested reads?
 
@@ -393,7 +434,7 @@ function deleteMutate(
 }
 
 function idFieldsMatch(model: string, x: any, y: any, schema: SchemaDef) {
-  if (!x || !y || typeof x !== "object" || typeof y !== "object") {
+  if (!x || !y || typeof x !== 'object' || typeof y !== 'object') {
     return false
   }
   const idFields = getIdFields(schema, model)

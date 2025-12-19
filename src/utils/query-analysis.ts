@@ -1,7 +1,7 @@
-import type { SchemaDef } from "@zenstackhq/schema"
-import { NestedReadVisitor } from "./nested-read-visitor"
-import { NestedWriteVisitor } from "./nested-write-visitor"
-import type { ORMWriteActionType } from "./types"
+import type { SchemaDef } from '@zenstackhq/schema'
+import { NestedReadVisitor } from './nested-read-visitor'
+import { NestedWriteVisitor } from './nested-write-visitor'
+import type { ORMWriteActionType } from './types'
 
 /**
  * Gets models read (including nested ones) given a query args.
@@ -27,7 +27,12 @@ export function getReadModels(model: string, schema: SchemaDef, args: any) {
 /**
  * Gets mutated models (including nested ones) given a mutation args.
  */
-export async function getMutatedModels(model: string, operation: ORMWriteActionType, mutationArgs: any, schema: SchemaDef) {
+export async function getMutatedModels(
+  model: string,
+  operation: ORMWriteActionType,
+  mutationArgs: any,
+  schema: SchemaDef
+) {
   const result = new Set<string>()
   result.add(model)
 
@@ -72,7 +77,12 @@ export async function getMutatedModels(model: string, operation: ORMWriteActionT
   return [...result]
 }
 
-function collectDeleteCascades(model: string, schema: SchemaDef, result: Set<string>, visited: Set<string>) {
+function collectDeleteCascades(
+  model: string,
+  schema: SchemaDef,
+  result: Set<string>,
+  visited: Set<string>
+) {
   if (visited.has(model)) {
     // break circle
     return
@@ -89,7 +99,7 @@ function collectDeleteCascades(model: string, schema: SchemaDef, result: Set<str
       continue
     }
     for (const fieldDef of Object.values(modelDef.fields)) {
-      if (fieldDef.relation?.onDelete === "Cascade" && fieldDef.type === model) {
+      if (fieldDef.relation?.onDelete === 'Cascade' && fieldDef.type === model) {
         if (!result.has(modelName)) {
           result.add(modelName)
         }

@@ -1,6 +1,6 @@
 # ZenStack Pinia Colada
 
-[Pinia Colada](https://pinia-colada.esm.dev/)  client for [ZenStack](https://zenstack.dev) - The Smart Data Fetching Layer for Vue 3.
+[Pinia Colada](https://pinia-colada.esm.dev/) client for [ZenStack](https://zenstack.dev) - The Smart Data Fetching Layer for Vue 3.
 
 ## Features
 
@@ -78,8 +78,8 @@ const handleCreateUser = () => {
   createUser.mutate({
     data: {
       email: 'user@example.com',
-      name: 'John Doe'
-    }
+      name: 'John Doe',
+    },
   })
 }
 </script>
@@ -89,15 +89,10 @@ const handleCreateUser = () => {
     <div v-if="status === 'pending'">Loading...</div>
     <div v-else-if="error">Error: {{ error.message }}</div>
     <ul v-else>
-      <li v-for="user in users" :key="user.id">
-        {{ user.name }} ({{ user.email }})
-      </li>
+      <li v-for="user in users" :key="user.id">{{ user.name }} ({{ user.email }})</li>
     </ul>
 
-    <button
-      @click="handleCreateUser"
-      :disabled="createUser.status === 'pending'"
-    >
+    <button @click="handleCreateUser" :disabled="createUser.status === 'pending'">
       Create User
     </button>
   </div>
@@ -119,6 +114,7 @@ Each model in your schema gets the following query hooks:
 - `useGroupBy(args, options)` - Group records
 
 **Query Return Values:**
+
 ```typescript
 {
   data: Ref<T | undefined>,      // Query data
@@ -144,6 +140,7 @@ Each model gets these mutation hooks:
 - `useDeleteMany(options)` - Delete multiple records
 
 **Mutation Return Values:**
+
 ```typescript
 {
   mutate: (variables: T) => void,        // Trigger mutation
@@ -168,7 +165,7 @@ const updatePost = queries.post.useUpdate({
 
 updatePost.mutate({
   where: { id: '1' },
-  data: { title: 'New Title' }
+  data: { title: 'New Title' },
 })
 // UI updates immediately, then syncs with server response
 ```
@@ -182,7 +179,7 @@ const { data } = queries.post.useFindMany(
   { where: { published: true } },
   {
     staleTime: 5000, // Consider data fresh for 5 seconds
-    gcTime: 300000,  // Garbage collection time (default: 5 minutes)
+    gcTime: 300000, // Garbage collection time (default: 5 minutes)
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     enabled: computed(() => isReady.value), // Conditionally enable
@@ -195,16 +192,15 @@ const { data } = queries.post.useFindMany(
 For paginated data with infinite scrolling:
 
 ```typescript
-const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-  queries.post.useInfiniteFindMany(
-    { take: 10, where: { published: true } },
-    {
-      getNextPageParam: (lastPage, pages) => {
-        // Return the cursor for the next page
-        return lastPage.length === 10 ? pages.length * 10 : undefined
-      }
-    }
-  )
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = queries.post.useInfiniteFindMany(
+  { take: 10, where: { published: true } },
+  {
+    getNextPageParam: (lastPage, pages) => {
+      // Return the cursor for the next page
+      return lastPage.length === 10 ? pages.length * 10 : undefined
+    },
+  }
+)
 ```
 
 ### Disable Auto Invalidation
@@ -225,7 +221,7 @@ All hooks are fully typed based on your ZenStack schema:
 // TypeScript knows the exact shape of User
 const { data: user } = queries.user.useFindUnique({
   where: { id: '1' },
-  select: { id: true, name: true, email: true }
+  select: { id: true, name: true, email: true },
 })
 
 // user is typed as: { id: string; name: string; email: string } | null
@@ -242,6 +238,7 @@ If you're familiar with `@zenstackhq/tanstack-query`, the Pinia Colada client of
 - ⚡️ **Better performance** - Optimized for Vue's reactivity system
 
 **Key API Differences:**
+
 - Returns Vue `Ref` objects instead of plain values
 - Uses `status` instead of separate `isLoading`, `isSuccess` flags
 - `refresh()` instead of `refetch()` for manual updates

@@ -1,16 +1,16 @@
-import Decimal from "decimal.js"
-import SuperJSON from "superjson"
+import Decimal from 'decimal.js'
+import SuperJSON from 'superjson'
 
 SuperJSON.registerCustom<Decimal, string>(
   {
     isApplicable: (v): v is Decimal =>
       v instanceof Decimal ||
       // interop with decimal.js
-      v?.toStringTag === "[object Decimal]",
+      v?.toStringTag === '[object Decimal]',
     serialize: (v) => v.toJSON(),
     deserialize: (v) => new Decimal(v),
   },
-  "Decimal",
+  'Decimal'
 )
 
 // For Uint8Array (Prisma Bytes type) serialization
@@ -18,9 +18,9 @@ SuperJSON.registerCustom<Uint8Array, string>(
   {
     isApplicable: (v): v is Uint8Array => v instanceof Uint8Array,
     serialize: (v) => btoa(String.fromCharCode(...v)),
-    deserialize: (v) => Uint8Array.from(atob(v), c => c.charCodeAt(0)),
+    deserialize: (v) => Uint8Array.from(atob(v), (c) => c.charCodeAt(0)),
   },
-  "Bytes",
+  'Bytes'
 )
 
 /**

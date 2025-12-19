@@ -1,29 +1,28 @@
-import type { OperationsIneligibleForDelegateModels } from "@zenstackhq/orm"
-import type { GetModels, IsDelegateModel, SchemaDef } from "@zenstackhq/schema"
+import type { OperationsIneligibleForDelegateModels } from '@zenstackhq/orm'
+import type { GetModels, IsDelegateModel, SchemaDef } from '@zenstackhq/schema'
 
 export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>
 
 /**
  * Adds an optional `$optimistic` flag to a type for optimistic updates.
  */
-export type WithOptimistic<T> = T extends Array<infer E>
-  ? Array<E & { $optimistic?: boolean }>
-  : T & { $optimistic?: boolean }
+export type WithOptimistic<T> =
+  T extends Array<infer E> ? Array<E & { $optimistic?: boolean }> : T & { $optimistic?: boolean }
 
 export const ORMWriteActions = [
-  "create",
-  "createMany",
-  "createManyAndReturn",
-  "connectOrCreate",
-  "update",
-  "updateMany",
-  "updateManyAndReturn",
-  "upsert",
-  "connect",
-  "disconnect",
-  "set",
-  "delete",
-  "deleteMany",
+  'create',
+  'createMany',
+  'createManyAndReturn',
+  'connectOrCreate',
+  'update',
+  'updateMany',
+  'updateManyAndReturn',
+  'upsert',
+  'connect',
+  'disconnect',
+  'set',
+  'delete',
+  'deleteMany',
 ] as const
 
 export type ORMWriteActionType = (typeof ORMWriteActions)[number]
@@ -32,5 +31,11 @@ type HooksOperationsIneligibleForDelegateModels = OperationsIneligibleForDelegat
   ? `use${Capitalize<OperationsIneligibleForDelegateModels>}`
   : never
 
-export type TrimDelegateModelOperations<Schema extends SchemaDef, Model extends GetModels<Schema>, T extends Record<string, unknown>> =
-  IsDelegateModel<Schema, Model> extends true ? Omit<T, HooksOperationsIneligibleForDelegateModels> : T
+export type TrimDelegateModelOperations<
+  Schema extends SchemaDef,
+  Model extends GetModels<Schema>,
+  T extends Record<string, unknown>,
+> =
+  IsDelegateModel<Schema, Model> extends true
+    ? Omit<T, HooksOperationsIneligibleForDelegateModels>
+    : T

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { enumerate } from "@zenstackhq/common-helpers"
-import type { FieldDef, SchemaDef } from "@zenstackhq/schema"
-import { ORMWriteActions, type MaybePromise, type ORMWriteActionType } from "./types"
+import { enumerate } from '@zenstackhq/common-helpers'
+import type { FieldDef, SchemaDef } from '@zenstackhq/schema'
+import { ORMWriteActions, type MaybePromise, type ORMWriteActionType } from './types'
 
 type NestingPathItem = { field?: FieldDef; model: string; where: any; unique: boolean }
 
@@ -31,45 +30,78 @@ export type NestedWriteVisitorContext = {
  * to let the visitor traverse it instead of its original children.
  */
 export type NestedWriterVisitorCallback = {
-  create?: (model: string, data: any, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  create?: (
+    model: string,
+    data: any,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
   createMany?: (
     model: string,
     args: { data: any; skipDuplicates?: boolean },
-    context: NestedWriteVisitorContext,
+    context: NestedWriteVisitorContext
   ) => MaybePromise<boolean | object | void>
 
   connectOrCreate?: (
     model: string,
     args: { where: object; create: any },
-    context: NestedWriteVisitorContext,
+    context: NestedWriteVisitorContext
   ) => MaybePromise<boolean | object | void>
 
-  connect?: (model: string, args: object, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  connect?: (
+    model: string,
+    args: object,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
-  disconnect?: (model: string, args: object, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  disconnect?: (
+    model: string,
+    args: object,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
-  set?: (model: string, args: object, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  set?: (
+    model: string,
+    args: object,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
-  update?: (model: string, args: object, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  update?: (
+    model: string,
+    args: object,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
   updateMany?: (
     model: string,
     args: { where?: object; data: any },
-    context: NestedWriteVisitorContext,
+    context: NestedWriteVisitorContext
   ) => MaybePromise<boolean | object | void>
 
   upsert?: (
     model: string,
     args: { where: object; create: any; update: any },
-    context: NestedWriteVisitorContext,
+    context: NestedWriteVisitorContext
   ) => MaybePromise<boolean | object | void>
 
-  delete?: (model: string, args: object | boolean, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  delete?: (
+    model: string,
+    args: object | boolean,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
-  deleteMany?: (model: string, args: any | object, context: NestedWriteVisitorContext) => MaybePromise<boolean | object | void>
+  deleteMany?: (
+    model: string,
+    args: any | object,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<boolean | object | void>
 
-  field?: (field: FieldDef, action: ORMWriteActionType, data: any, context: NestedWriteVisitorContext) => MaybePromise<void>
+  field?: (
+    field: FieldDef,
+    action: ORMWriteActionType,
+    data: any,
+    context: NestedWriteVisitorContext
+  ) => MaybePromise<void>
 }
 
 /**
@@ -78,7 +110,7 @@ export type NestedWriterVisitorCallback = {
 export class NestedWriteVisitor {
   constructor(
     private readonly schema: SchemaDef,
-    private readonly callback: NestedWriterVisitorCallback,
+    private readonly callback: NestedWriterVisitorCallback
   ) {}
 
   private isWriteAction(value: string): value is ORMWriteActionType {
@@ -99,12 +131,12 @@ export class NestedWriteVisitor {
 
     switch (action) {
       // create has its data wrapped in 'data' field
-      case "create":
+      case 'create':
         topData = topData.data
         break
 
-      case "delete":
-      case "deleteMany":
+      case 'delete':
+      case 'deleteMany':
         topData = topData.where
         break
     }
@@ -118,7 +150,7 @@ export class NestedWriteVisitor {
     data: any,
     parent: any,
     field: FieldDef | undefined,
-    nestingPath: NestingPathItem[],
+    nestingPath: NestingPathItem[]
   ): Promise<void> {
     if (!data) {
       return
@@ -127,13 +159,18 @@ export class NestedWriteVisitor {
     const toplevel = field == undefined
 
     const context = { parent, field, nestingPath: [...nestingPath] }
-    const pushNewContext = (field: FieldDef | undefined, model: string, where: any, unique = false) => {
+    const pushNewContext = (
+      field: FieldDef | undefined,
+      model: string,
+      where: any,
+      unique = false
+    ) => {
       return { ...context, nestingPath: [...context.nestingPath, { field, model, where, unique }] }
     }
 
     // visit payload
     switch (action) {
-      case "create":
+      case 'create':
         for (const item of this.enumerateReverse(data)) {
           const newContext = pushNewContext(field, model, {})
           let callbackResult: any
@@ -141,14 +178,14 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.create(model, item, newContext)
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === "object" ? callbackResult : item
+            const subPayload = typeof callbackResult === 'object' ? callbackResult : item
             await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
           }
         }
         break
 
-      case "createMany":
-      case "createManyAndReturn":
+      case 'createMany':
+      case 'createManyAndReturn':
         {
           const newContext = pushNewContext(field, model, {})
           let callbackResult: any
@@ -156,13 +193,13 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.createMany(model, data, newContext)
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === "object" ? callbackResult : data.data
+            const subPayload = typeof callbackResult === 'object' ? callbackResult : data.data
             await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
           }
         }
         break
 
-      case "connectOrCreate":
+      case 'connectOrCreate':
         for (const item of this.enumerateReverse(data)) {
           const newContext = pushNewContext(field, model, item.where)
           let callbackResult: any
@@ -170,13 +207,13 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.connectOrCreate(model, item, newContext)
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === "object" ? callbackResult : item.create
+            const subPayload = typeof callbackResult === 'object' ? callbackResult : item.create
             await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
           }
         }
         break
 
-      case "connect":
+      case 'connect':
         if (this.callback.connect) {
           for (const item of this.enumerateReverse(data)) {
             const newContext = pushNewContext(field, model, item, true)
@@ -185,19 +222,19 @@ export class NestedWriteVisitor {
         }
         break
 
-      case "disconnect":
+      case 'disconnect':
         // disconnect has two forms:
         //   if relation is to-many, the payload is a unique filter object
         //   if relation is to-one, the payload can only be boolean `true`
         if (this.callback.disconnect) {
           for (const item of this.enumerateReverse(data)) {
-            const newContext = pushNewContext(field, model, item, typeof item === "object")
+            const newContext = pushNewContext(field, model, item, typeof item === 'object')
             await this.callback.disconnect(model, item, newContext)
           }
         }
         break
 
-      case "set":
+      case 'set':
         if (this.callback.set) {
           for (const item of this.enumerateReverse(data)) {
             const newContext = pushNewContext(field, model, item, true)
@@ -206,7 +243,7 @@ export class NestedWriteVisitor {
         }
         break
 
-      case "update":
+      case 'update':
         for (const item of this.enumerateReverse(data)) {
           const newContext = pushNewContext(field, model, item.where)
           let callbackResult: any
@@ -214,14 +251,19 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.update(model, item, newContext)
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === "object" ? callbackResult : typeof item.data === "object" ? item.data : item
+            const subPayload =
+              typeof callbackResult === 'object'
+                ? callbackResult
+                : typeof item.data === 'object'
+                  ? item.data
+                  : item
             await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
           }
         }
         break
 
-      case "updateMany":
-      case "updateManyAndReturn":
+      case 'updateMany':
+      case 'updateManyAndReturn':
         for (const item of this.enumerateReverse(data)) {
           const newContext = pushNewContext(field, model, item.where)
           let callbackResult: any
@@ -229,13 +271,13 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.updateMany(model, item, newContext)
           }
           if (callbackResult !== false) {
-            const subPayload = typeof callbackResult === "object" ? callbackResult : item
+            const subPayload = typeof callbackResult === 'object' ? callbackResult : item
             await this.visitSubPayload(model, action, subPayload, newContext.nestingPath)
           }
         }
         break
 
-      case "upsert": {
+      case 'upsert': {
         for (const item of this.enumerateReverse(data)) {
           const newContext = pushNewContext(field, model, item.where)
           let callbackResult: any
@@ -243,7 +285,7 @@ export class NestedWriteVisitor {
             callbackResult = await this.callback.upsert(model, item, newContext)
           }
           if (callbackResult !== false) {
-            if (typeof callbackResult === "object") {
+            if (typeof callbackResult === 'object') {
               await this.visitSubPayload(model, action, callbackResult, newContext.nestingPath)
             } else {
               await this.visitSubPayload(model, action, item.create, newContext.nestingPath)
@@ -254,7 +296,7 @@ export class NestedWriteVisitor {
         break
       }
 
-      case "delete": {
+      case 'delete': {
         if (this.callback.delete) {
           for (const item of this.enumerateReverse(data)) {
             const newContext = pushNewContext(field, model, toplevel ? item.where : item)
@@ -264,7 +306,7 @@ export class NestedWriteVisitor {
         break
       }
 
-      case "deleteMany":
+      case 'deleteMany':
         if (this.callback.deleteMany) {
           for (const item of this.enumerateReverse(data)) {
             const newContext = pushNewContext(field, model, toplevel ? item.where : item)
@@ -279,9 +321,14 @@ export class NestedWriteVisitor {
     }
   }
 
-  private async visitSubPayload(model: string, action: ORMWriteActionType, payload: any, nestingPath: NestingPathItem[]) {
+  private async visitSubPayload(
+    model: string,
+    action: ORMWriteActionType,
+    payload: any,
+    nestingPath: NestingPathItem[]
+  ) {
     for (const item of enumerate(payload)) {
-      if (!item || typeof item !== "object") {
+      if (!item || typeof item !== 'object') {
         continue
       }
       for (const field of Object.keys(item)) {
@@ -295,7 +342,9 @@ export class NestedWriteVisitor {
             // recurse into nested payloads
             for (const [subAction, subData] of Object.entries<any>(item[field])) {
               if (this.isWriteAction(subAction) && subData) {
-                await this.doVisit(fieldDef.type, subAction, subData, item[field], fieldDef, [...nestingPath])
+                await this.doVisit(fieldDef.type, subAction, subData, item[field], fieldDef, [
+                  ...nestingPath,
+                ])
               }
             }
           }
