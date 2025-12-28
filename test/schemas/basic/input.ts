@@ -28,7 +28,7 @@ import type {
   OmitInput as $OmitInput,
 } from "@zenstackhq/orm";
 import type {
-  SimplifiedModelResult as $SimplifiedModelResult,
+  SimplifiedResult as $SimplifiedModelResult,
   SelectIncludeOmit as $SelectIncludeOmit,
 } from "@zenstackhq/orm";
 export type UserFindManyArgs = $FindManyArgs<$Schema, "User">;

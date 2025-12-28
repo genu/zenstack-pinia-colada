@@ -1,297 +1,391 @@
-import type { GetModels, SchemaDef } from "@zenstackhq/schema";
+import type { GetModels, SchemaDef } from '@zenstackhq/schema';
 import type {
-  AggregateArgs,
-  AggregateResult,
-  BatchResult,
-  ClientOptions,
-  CountArgs,
-  CountResult,
-  CreateArgs,
-  CreateManyAndReturnArgs,
-  CreateManyArgs,
-  DeleteArgs,
-  DeleteManyArgs,
-  FindFirstArgs,
-  FindManyArgs,
-  FindUniqueArgs,
-  GroupByArgs,
-  GroupByResult,
-  SelectSubset,
-  SimplifiedModelResult,
-  Subset,
-  UpdateArgs,
-  UpdateManyAndReturnArgs,
-  UpdateManyArgs,
-  UpsertArgs,
-} from "@zenstackhq/orm";
-import { inject, provide, toValue, type MaybeRefOrGetter, type UnwrapRef } from "vue";
+    AggregateArgs,
+    AggregateResult,
+    BatchResult,
+    CountArgs,
+    CountResult,
+    CreateArgs,
+    CreateManyAndReturnArgs,
+    CreateManyArgs,
+    DeleteArgs,
+    DeleteManyArgs,
+    FindFirstArgs,
+    FindManyArgs,
+    FindUniqueArgs,
+    GroupByArgs,
+    GroupByResult,
+    QueryOptions,
+    SelectSubset,
+    SimplifiedPlainResult,
+    SimplifiedResult,
+    Subset,
+    UpdateArgs,
+    UpdateManyAndReturnArgs,
+    UpdateManyArgs,
+    UpsertArgs,
+} from '@zenstackhq/orm';
+import { computed, inject, provide, toValue, unref, type MaybeRefOrGetter, type UnwrapRef } from 'vue';
 import {
-  useQuery,
-  useInfiniteQuery,
-  useMutation,
-  useQueryCache,
-  type UseMutationOptions,
-  type UseMutationReturn,
-  type UseQueryOptions,
-  type UseQueryReturn,
-  type UseInfiniteQueryOptions,
-  type UseInfiniteQueryReturn,
-  type EntryKey,
-} from "@pinia/colada";
-import { lowerCaseFirst } from "@zenstackhq/common-helpers";
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryCache,
+    type EntryKey,
+    type UseInfiniteQueryOptions,
+    type UseInfiniteQueryReturn,
+    type UseMutationOptions,
+    type UseMutationReturn,
+    type UseQueryOptions,
+    type UseQueryReturn,
+} from '@pinia/colada';
+import { lowerCaseFirst } from '@zenstackhq/common-helpers';
 import {
-  DEFAULT_QUERY_ENDPOINT,
-  getKey,
-  makeUrl,
-  type ExtraMutationOptions,
-  type ExtraQueryOptions,
-  type APIContext,
-  fetcher,
-  setupOptimisticUpdate,
-  setupInvalidation,
-  marshal,
-} from "./utils/common";
-import type { TrimDelegateModelOperations } from "./utils/types";
+    createInvalidator,
+    createOptimisticUpdater,
+    DEFAULT_QUERY_ENDPOINT,
+    type InvalidationPredicate,
+} from '@zenstackhq/client-helpers';
+import { fetcher, makeUrl, marshal } from '@zenstackhq/client-helpers/fetch';
+import { getAllQueries, invalidateQueriesMatchingPredicate } from './common/client';
+import { getQueryKey } from './common/query-key';
+import type {
+    ExtraMutationOptions,
+    ExtraQueryOptions,
+    QueryContext,
+    TrimDelegateModelOperations,
+    WithOptimistic,
+} from './common/types';
 
-export type { FetchFn } from "./utils/common";
-export const PiniaColadaContextKey = "zenstack-pinia-colada-context";
+export type { FetchFn } from '@zenstackhq/client-helpers/fetch';
+export const PiniaColadaContextKey = 'zenstack-pinia-colada-context';
+
+/**
+ * Provide context for query settings.
+ *
+ * @deprecated Use {@link provideQuerySettingsContext} instead.
+ */
+export function provideHooksContext(context: QueryContext) {
+    provide<QueryContext>(PiniaColadaContextKey, context);
+}
 
 /**
  * Provide context for query settings.
  */
-export function provideQuerySettingsContext(context: APIContext) {
-  provide<APIContext>(PiniaColadaContextKey, context);
+export function provideQuerySettingsContext(context: QueryContext) {
+    provide<QueryContext>(PiniaColadaContextKey, context);
 }
 
-function getQuerySettings() {
-  const { endpoint, ...rest } = inject<APIContext>(PiniaColadaContextKey, {
-    endpoint: DEFAULT_QUERY_ENDPOINT,
-    fetch: undefined,
-    logging: false,
-  });
-  return { endpoint: endpoint ?? DEFAULT_QUERY_ENDPOINT, ...rest };
+function useQuerySettings() {
+    const { endpoint, ...rest } = inject<QueryContext>(PiniaColadaContextKey, {
+        endpoint: DEFAULT_QUERY_ENDPOINT,
+        fetch: undefined,
+        logging: false,
+    });
+    return { endpoint: endpoint ?? DEFAULT_QUERY_ENDPOINT, ...rest };
 }
 
-export type ClientHooks<Schema extends SchemaDef> = {
-  [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model>;
-};
-
-export type ModelQueryOptions<T> = Omit<UseQueryOptions<T>, "key" | "query"> & ExtraQueryOptions;
-
-export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<
-  { items: T[]; nextCursor?: unknown },
-  Error
-> & {
-  key: EntryKey;
-};
-
-export type ModelQueryResult<T> = UseQueryReturn<T> & { key: EntryKey };
-
-export type ModelInfiniteQueryOptions<T> = Omit<
-  UseInfiniteQueryOptions<T[], Error, T[] | undefined, { items: T[]; nextCursor?: unknown }>,
-  "key" | "query" | "initialPage" | "merge"
+export type ModelQueryOptions<T> = MaybeRefOrGetter<
+    Omit<UnwrapRef<UseQueryOptions<T>>, 'key'> & ExtraQueryOptions
 >;
 
+export type ModelQueryResult<T> = UseQueryReturn<WithOptimistic<T>, Error> & { queryKey: () => EntryKey };
+
+export type ModelInfiniteQueryOptions<T> = MaybeRefOrGetter<
+    Omit<UnwrapRef<UseInfiniteQueryOptions<T, Error, any, undefined>>, 'key' | 'initialPageParam'> & QueryContext
+>;
+
+export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<T, Error> & { queryKey: () => EntryKey };
+
 export type ModelMutationOptions<T, TArgs> = MaybeRefOrGetter<
-  Omit<UnwrapRef<UseMutationOptions<T, TArgs>>, "mutation"> & ExtraMutationOptions
+    Omit<UnwrapRef<UseMutationOptions<T, TArgs>>, 'mutation'> & ExtraMutationOptions
 >;
 
 export type ModelMutationResult<T, TArgs> = UseMutationReturn<T, TArgs, Error>;
 
 export type ModelMutationModelResult<
-  Schema extends SchemaDef,
-  Model extends GetModels<Schema>,
-  TArgs,
-  Array extends boolean = false,
+    Schema extends SchemaDef,
+    Model extends GetModels<Schema>,
+    TArgs,
+    Array extends boolean = false,
+    Options extends QueryOptions<Schema> = QueryOptions<Schema>,
 > = Omit<
-  ModelMutationResult<
-    SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, TArgs, false, Array>,
-    TArgs
-  >,
-  "mutateAsync"
+    ModelMutationResult<SimplifiedResult<Schema, Model, TArgs, QueryOptions<Schema>, false, Array>, TArgs>,
+    'mutateAsync'
 > & {
-  mutateAsync<T extends TArgs>(
-    args: T,
-    options?: ModelMutationOptions<
-      SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>,
-      T
-    >,
-  ): Promise<SimplifiedModelResult<Schema, Model, ClientOptions<Schema>, T, false, Array>>;
+    mutateAsync<T extends TArgs>(
+        args: T,
+        options?: ModelMutationOptions<SimplifiedResult<Schema, Model, T, Options, false, Array>, T>,
+    ): Promise<SimplifiedResult<Schema, Model, T, Options, false, Array>>;
 };
 
-type MResult<Schema extends SchemaDef, Model extends GetModels<Schema>, T> = SimplifiedModelResult<
-  Schema,
-  Model,
-  ClientOptions<Schema>,
-  T
->;
+export type ClientHooks<Schema extends SchemaDef, Options extends QueryOptions<Schema> = QueryOptions<Schema>> = {
+    [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options>;
+};
 
+// Note that we can potentially use TypeScript's mapped type to directly map from ORM contract, but that seems
+// to significantly slow down tsc performance ...
 export type ModelQueryHooks<
-  Schema extends SchemaDef,
-  Model extends GetModels<Schema>,
+    Schema extends SchemaDef,
+    Model extends GetModels<Schema>,
+    Options extends QueryOptions<Schema> = QueryOptions<Schema>,
 > = TrimDelegateModelOperations<
-  Schema,
-  Model,
-  {
-    useFindUnique<T extends FindUniqueArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
-    ): ModelQueryResult<MResult<Schema, Model, T> | null>;
+    Schema,
+    Model,
+    {
+        useFindUnique<T extends FindUniqueArgs<Schema, Model>>(
+            args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options> | null>>,
+        ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options> | null>;
 
-    useFindFirst<T extends FindFirstArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T> | null>,
-    ): ModelQueryResult<MResult<Schema, Model, T> | null>;
+        useFindFirst<T extends FindFirstArgs<Schema, Model>>(
+            args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options> | null>>,
+        ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options> | null>;
 
-    useFindMany<T extends FindManyArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<MResult<Schema, Model, T>[]>,
-    ): ModelQueryResult<MResult<Schema, Model, T>[]>;
+        useFindMany<T extends FindManyArgs<Schema, Model>>(
+            args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options>[]>>,
+        ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options>[]>;
 
-    useInfiniteFindMany<T extends FindManyArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: ModelInfiniteQueryOptions<MResult<Schema, Model, T>[]>,
-    ): ModelInfiniteQueryResult<MResult<Schema, Model, T>[]>;
+        useInfiniteFindMany<T extends FindManyArgs<Schema, Model>>(
+            args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelInfiniteQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options>[]>>,
+        ): ModelInfiniteQueryResult<SimplifiedPlainResult<Schema, Model, T, Options>[]>;
 
-    useCreate<T extends CreateArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
-    ): ModelMutationModelResult<Schema, Model, T>;
+        useCreate<T extends CreateArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
+        ): ModelMutationModelResult<Schema, Model, T, false, Options>;
 
-    useCreateMany<T extends CreateManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
-    ): ModelMutationResult<BatchResult, T>;
+        useCreateMany<T extends CreateManyArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
+        ): ModelMutationResult<BatchResult, T>;
 
-    useCreateManyAndReturn<T extends CreateManyAndReturnArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>,
-    ): ModelMutationModelResult<Schema, Model, T, true>;
+        useCreateManyAndReturn<T extends CreateManyAndReturnArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>[], T>>,
+        ): ModelMutationModelResult<Schema, Model, T, true, Options>;
 
-    useUpdate<T extends UpdateArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
-    ): ModelMutationModelResult<Schema, Model, T>;
+        useUpdate<T extends UpdateArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
+        ): ModelMutationModelResult<Schema, Model, T, false, Options>;
 
-    useUpdateMany<T extends UpdateManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
-    ): ModelMutationResult<BatchResult, T>;
+        useUpdateMany<T extends UpdateManyArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
+        ): ModelMutationResult<BatchResult, T>;
 
-    useUpdateManyAndReturn<T extends UpdateManyAndReturnArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>[], T>,
-    ): ModelMutationModelResult<Schema, Model, T, true>;
+        useUpdateManyAndReturn<T extends UpdateManyAndReturnArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>[], T>>,
+        ): ModelMutationModelResult<Schema, Model, T, true, Options>;
 
-    useUpsert<T extends UpsertArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
-    ): ModelMutationModelResult<Schema, Model, T>;
+        useUpsert<T extends UpsertArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
+        ): ModelMutationModelResult<Schema, Model, T, false, Options>;
 
-    useDelete<T extends DeleteArgs<Schema, Model>>(
-      options?: ModelMutationOptions<MResult<Schema, Model, T>, T>,
-    ): ModelMutationModelResult<Schema, Model, T>;
+        useDelete<T extends DeleteArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
+        ): ModelMutationModelResult<Schema, Model, T, false, Options>;
 
-    useDeleteMany<T extends DeleteManyArgs<Schema, Model>>(
-      options?: ModelMutationOptions<BatchResult, T>,
-    ): ModelMutationResult<BatchResult, T>;
+        useDeleteMany<T extends DeleteManyArgs<Schema, Model>>(
+            options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
+        ): ModelMutationResult<BatchResult, T>;
 
-    useCount<T extends CountArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<Subset<T, CountArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<CountResult<Schema, Model, T>>,
-    ): ModelQueryResult<CountResult<Schema, Model, T>>;
+        useCount<T extends CountArgs<Schema, Model>>(
+            args?: MaybeRefOrGetter<Subset<T, CountArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<CountResult<Schema, Model, T>>>,
+        ): ModelQueryResult<CountResult<Schema, Model, T>>;
 
-    useAggregate<T extends AggregateArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<Subset<T, AggregateArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<AggregateResult<Schema, Model, T>>,
-    ): ModelQueryResult<AggregateResult<Schema, Model, T>>;
+        useAggregate<T extends AggregateArgs<Schema, Model>>(
+            args: MaybeRefOrGetter<Subset<T, AggregateArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<AggregateResult<Schema, Model, T>>>,
+        ): ModelQueryResult<AggregateResult<Schema, Model, T>>;
 
-    useGroupBy<T extends GroupByArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<Subset<T, GroupByArgs<Schema, Model>>>,
-      options?: ModelQueryOptions<GroupByResult<Schema, Model, T>>,
-    ): ModelQueryResult<GroupByResult<Schema, Model, T>>;
-  }
+        useGroupBy<T extends GroupByArgs<Schema, Model>>(
+            args: MaybeRefOrGetter<Subset<T, GroupByArgs<Schema, Model>>>,
+            options?: MaybeRefOrGetter<ModelQueryOptions<GroupByResult<Schema, Model, T>>>,
+        ): ModelQueryResult<GroupByResult<Schema, Model, T>>;
+    }
 >;
 
-export function useInternalQuery<TData>(
-  _schema: SchemaDef,
-  model: string,
-  operation: string,
-  args?: MaybeRefOrGetter<unknown>,
-  options?: Omit<UseQueryOptions<TData>, "key" | "query"> & ExtraQueryOptions,
-) {
-  const { optimisticUpdate, ...restOptions } = options ?? {};
-  const { endpoint, fetch } = getQuerySettings();
-
-  // Make the key reactive by computing it from a getter
-  const key = () => {
-    const argsValue = toValue(args);
-    return getKey(model, operation, argsValue, {
-      infinite: false,
-      optimisticUpdate: optimisticUpdate !== false,
-    });
-  };
-
-  const finalOptions = {
-    key: key,
-    query: ({ signal }: { signal: AbortSignal }) => {
-      const argsValue = toValue(args);
-      const reqUrl = makeUrl(endpoint, model, operation, argsValue);
-      return fetcher<TData>(reqUrl, { signal }, fetch);
-    },
-    ...restOptions,
-  } as UseQueryOptions<TData>;
-
-  return { key: key(), ...useQuery<TData>(finalOptions) };
+/**
+ * Gets data query hooks for all models in the schema.
+ */
+export function useClientQueries<Schema extends SchemaDef, Options extends QueryOptions<Schema> = QueryOptions<Schema>>(
+    schema: Schema,
+    options?: MaybeRefOrGetter<QueryContext>,
+): ClientHooks<Schema, Options> {
+    return Object.keys(schema.models).reduce(
+        (acc, model) => {
+            (acc as any)[lowerCaseFirst(model)] = useModelQueries<Schema, GetModels<Schema>, Options>(
+                schema,
+                model as GetModels<Schema>,
+                options,
+            );
+            return acc;
+        },
+        {} as ClientHooks<Schema, Options>,
+    );
 }
 
-export function useInternalInfiniteQuery<TData>(
-  _schema: SchemaDef,
-  model: string,
-  operation: string,
-  args: MaybeRefOrGetter<unknown>,
-  options:
-    | Omit<UseInfiniteQueryOptions<TData, Error>, "key" | "query" | "initialPage" | "merge">
-    | undefined,
+/**
+ * Gets data query hooks for a specific model in the schema.
+ */
+export function useModelQueries<
+    Schema extends SchemaDef,
+    Model extends GetModels<Schema>,
+    Options extends QueryOptions<Schema>,
+>(schema: Schema, model: Model, rootOptions?: MaybeRefOrGetter<QueryContext>): ModelQueryHooks<Schema, Model, Options> {
+    const modelDef = Object.values(schema.models).find((m) => m.name.toLowerCase() === model.toLowerCase());
+    if (!modelDef) {
+        throw new Error(`Model "${model}" not found in schema`);
+    }
+
+    const modelName = modelDef.name;
+
+    const merge = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
+        return computed(() => {
+            return { ...(toValue(rootOpt) as object), ...(toValue(opt) as object) };
+        });
+    };
+
+    return {
+        useFindUnique: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'findUnique', args, merge(rootOptions, options));
+        },
+
+        useFindFirst: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'findFirst', args, merge(rootOptions, options));
+        },
+
+        useFindMany: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'findMany', args, merge(rootOptions, options));
+        },
+
+        useInfiniteFindMany: (args: any, options?: any) => {
+            return useInternalInfiniteQuery(schema, modelName, 'findMany', args, merge(rootOptions, options));
+        },
+
+        useCreate: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'POST', 'create', merge(rootOptions, options));
+        },
+
+        useCreateMany: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'POST', 'createMany', merge(rootOptions, options));
+        },
+
+        useCreateManyAndReturn: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'POST', 'createManyAndReturn', merge(rootOptions, options));
+        },
+
+        useUpdate: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'PUT', 'update', merge(rootOptions, options));
+        },
+
+        useUpdateMany: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'PUT', 'updateMany', merge(rootOptions, options));
+        },
+
+        useUpdateManyAndReturn: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'PUT', 'updateManyAndReturn', merge(rootOptions, options));
+        },
+
+        useUpsert: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'POST', 'upsert', merge(rootOptions, options));
+        },
+
+        useDelete: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'DELETE', 'delete', merge(rootOptions, options));
+        },
+
+        useDeleteMany: (options?: any) => {
+            return useInternalMutation(schema, modelName, 'DELETE', 'deleteMany', merge(rootOptions, options));
+        },
+
+        useCount: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'count', args, merge(rootOptions, options));
+        },
+
+        useAggregate: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'aggregate', args, merge(rootOptions, options));
+        },
+
+        useGroupBy: (args: any, options?: any) => {
+            return useInternalQuery(schema, modelName, 'groupBy', args, merge(rootOptions, options));
+        },
+    } as ModelQueryHooks<Schema, Model, Options>;
+}
+
+export function useInternalQuery<TQueryFnData>(
+    _schema: SchemaDef,
+    model: string,
+    operation: string,
+    args?: MaybeRefOrGetter<unknown>,
+    options?: MaybeRefOrGetter<Omit<UnwrapRef<UseQueryOptions<TQueryFnData, Error>>, 'key'> & ExtraQueryOptions>,
 ) {
-  const { endpoint, fetch } = getQuerySettings();
+    const { endpoint, fetch } = useFetchOptions(options);
 
-  // Make the key reactive by computing it from a getter
-  const key = () => {
-    const argsValue = toValue(args);
-    return getKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false });
-  };
+    // reactive query key function
+    const queryKey = () => {
+        const argsValue = toValue(args);
+        const { optimisticUpdate } = toValue(options) ?? {};
+        return getQueryKey(model, operation, argsValue, {
+            infinite: false,
+            optimisticUpdate: optimisticUpdate !== false,
+        });
+    };
 
-  // Type for paginated results - contains items array and cursor info
-  type PageState = {
-    items: TData[];
-    nextCursor?: unknown;
-  };
+    // reactive query options
+    const finalOptions: any = computed(() => {
+        const { optimisticUpdate: _, ...restOptions } = toValue(options) ?? {};
+        return {
+            key: queryKey,
+            query: ({ signal }: any) => {
+                const reqUrl = makeUrl(endpoint, model, operation, toValue(args));
+                return fetcher<TQueryFnData>(reqUrl, { signal }, fetch);
+            },
+            ...restOptions,
+        };
+    });
+    return { queryKey, ...useQuery<TQueryFnData, Error>(finalOptions) };
+}
 
-  const finalOptions = {
-    key: key,
-    // Pinia Colada's infinite query: query receives accumulated pages and returns new page data
-    query: async (pages: PageState, { signal }: { signal: AbortSignal }): Promise<TData[]> => {
-      const argsValue = toValue(args) as Record<string, unknown> | undefined;
-      // Build query args with cursor for pagination
-      const pageArgs = pages.nextCursor ? { ...argsValue, cursor: pages.nextCursor } : argsValue;
-      const reqUrl = makeUrl(endpoint, model, operation, pageArgs);
-      return fetcher<TData[]>(reqUrl, { signal }, fetch);
-    },
-    // Initial page state
-    initialPage: (): PageState => ({
-      items: [],
-      nextCursor: undefined,
-    }),
-    // Merge function: combines existing pages with new data
-    merge: (result: PageState, current: TData[]): PageState => {
-      // Extract cursor from last item if available (common pagination pattern)
-      const lastItem = current[current.length - 1] as Record<string, unknown> | undefined;
-      return {
-        items: [...result.items, ...current],
-        nextCursor: lastItem?.id, // Use last item's id as cursor for next page
-      };
-    },
-    ...options,
-  } as UseInfiniteQueryOptions<TData[], Error, TData[] | undefined, PageState>;
+export function useInternalInfiniteQuery<TQueryFnData>(
+    _schema: SchemaDef,
+    model: string,
+    operation: string,
+    args: MaybeRefOrGetter<unknown>,
+    options: MaybeRefOrGetter<
+        Omit<UnwrapRef<UseInfiniteQueryOptions<TQueryFnData, Error, any, undefined>>, 'key' | 'initialPageParam'> &
+            QueryContext
+    >,
+) {
+    options = options ?? { getNextPageParam: () => undefined };
 
-  return {
-    key: key(),
-    ...useInfiniteQuery(finalOptions),
-  };
+    const { endpoint, fetch } = useFetchOptions(options);
+
+    // reactive query key function
+    const queryKey = () => {
+        const argsValue = toValue(args);
+        return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false });
+    };
+
+    // reactive query options
+    const finalOptions: any = computed(() => {
+        const argsValue = toValue(args);
+        const optionsValue = toValue(options);
+        return {
+            key: queryKey,
+            initialPageParam: toValue(argsValue),
+            ...optionsValue,
+            query: ({ signal }: any) => {
+                const reqUrl = makeUrl(endpoint, model, operation, argsValue);
+                return fetcher<TQueryFnData>(reqUrl, { signal }, fetch);
+            },
+        };
+    });
+    return {
+        queryKey,
+        ...useInfiniteQuery(finalOptions),
+    };
 }
 
 /**
@@ -302,196 +396,116 @@ export function useInternalInfiniteQuery<TData>(
  * @param model The name of the model under mutation.
  * @param method The HTTP method.
  * @param operation The mutation operation (e.g. `create`).
- * @param options The Pinia Colada mutation options.
+ * @param options The Pinia Colada options.
  * @param checkReadBack Whether to check for read back errors and return undefined if found.
  */
-export function useInternalMutation<TArgs, R = unknown>(
-  schema: SchemaDef,
-  model: string,
-  method: "POST" | "PUT" | "DELETE",
-  operation: string,
-  options?: MaybeRefOrGetter<
-    Omit<UnwrapRef<UseMutationOptions<R, TArgs>>, "mutation"> & ExtraMutationOptions
-  >,
+export function useInternalMutation<TArgs, R = any>(
+    schema: SchemaDef,
+    model: string,
+    method: 'POST' | 'PUT' | 'DELETE',
+    operation: string,
+    options?: MaybeRefOrGetter<Omit<UnwrapRef<UseMutationOptions<R, TArgs>>, 'mutation'> & ExtraMutationOptions>,
 ) {
-  const { endpoint, fetch, logging } = getQuerySettings();
-  const queryCache = useQueryCache();
-  const mutation = (data: TArgs): Promise<R> => {
-    const reqUrl =
-      method === "DELETE"
-        ? makeUrl(endpoint, model, operation, data)
-        : makeUrl(endpoint, model, operation);
-    const fetchInit: RequestInit = {
-      method,
-      ...(method !== "DELETE" && {
-        headers: {
-          "content-type": "application/json",
-        },
-        body: marshal(data),
-      }),
+    const queryCache = useQueryCache();
+
+    const { endpoint, fetch, logging } = useFetchOptions(options);
+    const mutationFn = (data: any) => {
+        const reqUrl =
+            method === 'DELETE' ? makeUrl(endpoint, model, operation, data) : makeUrl(endpoint, model, operation);
+        const fetchInit: RequestInit = {
+            method,
+            ...(method !== 'DELETE' && {
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: marshal(data),
+            }),
+        };
+        return fetcher<R>(reqUrl, fetchInit, fetch) as Promise<R>;
     };
-    return fetcher<R>(reqUrl, fetchInit, fetch) as Promise<R>;
-  };
 
-  const optionsValue = toValue(options);
-  const finalOptions = { ...optionsValue, mutation } as UseMutationOptions<R, TArgs>;
-  const invalidateQueries = optionsValue?.invalidateQueries !== false;
-  const optimisticUpdate = !!optionsValue?.optimisticUpdate;
+    // reactive mutation options
+    const finalOptions = computed(() => {
+        const optionsValue = toValue(options);
+        const result = {
+            ...optionsValue,
+            mutation: mutationFn,
+        } as UnwrapRef<UseMutationOptions<R, TArgs>> & ExtraMutationOptions;
 
-  if (operation) {
-    if (invalidateQueries) {
-      setupInvalidation(
-        model,
-        operation,
-        schema,
-        finalOptions,
-        async (predicate) => {
-          await queryCache.invalidateQueries({
-            predicate: (entry) => predicate({ key: entry.key as readonly unknown[] }),
-          });
-        },
-        logging,
-      );
-    }
+        const invalidateQueries = optionsValue?.invalidateQueries !== false;
+        const optimisticUpdate = !!optionsValue?.optimisticUpdate;
 
-    if (optimisticUpdate) {
-      setupOptimisticUpdate(
-        model,
-        operation,
-        schema,
-        finalOptions,
-        queryCache.getEntries().map((entry) => ({
-          key: entry.key as readonly unknown[],
-          state: {
-            data: entry.state.value.data,
-            error: entry.state.value.error,
-          },
-        })),
-        (key, data) => {
-          // update query cache
-          queryCache.setQueryData(key as EntryKey, data);
-          // cancel on-flight queries to avoid redundant cache updates,
-          // the settlement of the current mutation will trigger a new revalidation
-          queryCache.cancelQueries({ key: key as EntryKey });
-        },
-        invalidateQueries
-          ? async (predicate) => {
-              await queryCache.invalidateQueries({
-                predicate: (entry) => predicate({ key: entry.key as readonly unknown[] }),
-              });
+        if (!optimisticUpdate) {
+            if (invalidateQueries) {
+                const invalidator = createInvalidator(
+                    model,
+                    operation,
+                    schema,
+                    (predicate: InvalidationPredicate) => {
+                        invalidateQueriesMatchingPredicate(queryCache, predicate);
+                    },
+                    logging,
+                );
+                // execute invalidator prior to user-provided onSuccess
+                result.onSuccess = async (...args) => {
+                    await invalidator(...args);
+                    const origOnSuccess: any = toValue(optionsValue?.onSuccess);
+                    await origOnSuccess?.(...args);
+                };
             }
-          : undefined,
-        logging,
-      );
-    }
-  }
+        } else {
+            const optimisticUpdater = createOptimisticUpdater(
+                model,
+                operation,
+                schema,
+                { optimisticDataProvider: result.optimisticDataProvider },
+                () => getAllQueries(queryCache),
+                logging,
+            );
 
-  return useMutation(finalOptions);
+            // optimistic update on mutate
+            const origOnMutate = result.onMutate;
+            result.onMutate = async (...args) => {
+                // execute optimistic updater prior to user-provided onMutate
+                await optimisticUpdater(...args);
+
+                // call user-provided onMutate
+                return unref(origOnMutate)?.(...args);
+            };
+
+            if (invalidateQueries) {
+                const invalidator = createInvalidator(
+                    model,
+                    operation,
+                    schema,
+                    (predicate: InvalidationPredicate) => {
+                        invalidateQueriesMatchingPredicate(queryCache, predicate);
+                    },
+                    logging,
+                );
+                const origOnSettled = result.onSettled;
+                result.onSettled = async (...args) => {
+                    // execute invalidator prior to user-provided onSettled
+                    await invalidator(...args);
+
+                    // call user-provided onSettled
+                    return unref(origOnSettled)?.(...args);
+                };
+            }
+        }
+        return result;
+    });
+
+    return useMutation(finalOptions as any);
 }
 
-/**
- * Gets data query hooks for all models in the schema.
- */
-export function useClientQueries<Schema extends SchemaDef>(schema: Schema): ClientHooks<Schema> {
-  return Object.keys(schema.models).reduce(
-    (acc, model) => {
-      (acc as Record<string, unknown>)[lowerCaseFirst(model)] = useModelQueries(
-        schema,
-        model as GetModels<Schema>,
-      );
-      return acc;
-    },
-    {} as ClientHooks<Schema>,
-  );
-}
-
-/**
- * Gets data query hooks for a specific model in the schema.
- */
-export function useModelQueries<Schema extends SchemaDef, Model extends GetModels<Schema>>(
-  schema: Schema,
-  model: Model,
-): ModelQueryHooks<Schema, Model> {
-  const modelDef = Object.values(schema.models).find(
-    (m) => m.name.toLowerCase() === model.toLowerCase(),
-  );
-  if (!modelDef) {
-    throw new Error(`Model "${model}" not found in schema`);
-  }
-
-  const modelName = modelDef.name;
-
-  return {
-    useFindUnique: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findUnique", args, options);
-    },
-
-    useFindFirst: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findFirst", args, options);
-    },
-
-    useFindMany: (args, options?) => {
-      return useInternalQuery(schema, modelName, "findMany", args, options);
-    },
-
-    useInfiniteFindMany: (args, options?) => {
-      return useInternalInfiniteQuery(
-        schema,
-        modelName,
-        "findMany",
-        args,
-        options as
-          | Omit<UseInfiniteQueryOptions<unknown, Error>, "key" | "query" | "initialPageParam">
-          | undefined,
-      );
-    },
-
-    useCreate: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "create", options);
-    },
-
-    useCreateMany: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "createMany", options);
-    },
-
-    useCreateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "createManyAndReturn", options);
-    },
-
-    useUpdate: (options?) => {
-      return useInternalMutation(schema, modelName, "PUT", "update", options);
-    },
-
-    useUpdateMany: (options?) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateMany", options);
-    },
-
-    useUpdateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateManyAndReturn", options);
-    },
-
-    useUpsert: (options?) => {
-      return useInternalMutation(schema, modelName, "POST", "upsert", options);
-    },
-
-    useDelete: (options?) => {
-      return useInternalMutation(schema, modelName, "DELETE", "delete", options);
-    },
-
-    useDeleteMany: (options?) => {
-      return useInternalMutation(schema, modelName, "DELETE", "deleteMany", options);
-    },
-
-    useCount: (args, options?) => {
-      return useInternalQuery(schema, modelName, "count", args, options);
-    },
-
-    useAggregate: (args, options?) => {
-      return useInternalQuery(schema, modelName, "aggregate", args, options);
-    },
-
-    useGroupBy: (args, options?) => {
-      return useInternalQuery(schema, modelName, "groupBy", args, options);
-    },
-  } as ModelQueryHooks<Schema, Model>;
+function useFetchOptions(options: MaybeRefOrGetter<QueryContext | undefined>) {
+    const { endpoint, fetch, logging } = useQuerySettings();
+    const optionsValue = toValue(options);
+    // options take precedence over context
+    return {
+        endpoint: optionsValue?.endpoint ?? endpoint,
+        fetch: optionsValue?.fetch ?? fetch,
+        logging: optionsValue?.logging ?? logging,
+    };
 }

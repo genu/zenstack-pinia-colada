@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useClientQueries, useModelQueries, PiniaColadaContextKey } from "../src/index";
-import {
-  getKey,
-  makeUrl,
-  marshal,
-  unmarshal,
-  fetcher,
-  QUERY_KEY_PREFIX,
-  DEFAULT_QUERY_ENDPOINT,
-} from "../src/utils/common";
+import { getQueryKey, QUERY_KEY_PREFIX } from "../src/common/query-key";
+import { makeUrl, marshal, fetcher } from "@zenstackhq/client-helpers/fetch";
+import { DEFAULT_QUERY_ENDPOINT } from "@zenstackhq/client-helpers";
 import { schema } from "./schemas/basic/schema-lite";
+
+// Type declarations for global scope in tests
+declare const global: typeof globalThis;
+
+// Re-export for compatibility with existing tests
+const getKey = getQueryKey;
+const unmarshal = (data: string) => JSON.parse(data);
 
 describe("Pinia Colada Client Tests", () => {
   describe("useClientQueries", () => {
