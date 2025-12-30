@@ -55,9 +55,7 @@
     "@zenstackhq/client-helpers": "/Users/AV6AB7Z/Documents/git.nosync/os/zenstack-v3/packages/clients/client-helpers/dist",
     "@zenstackhq/common-helpers": "^3.0.0",
     "@zenstackhq/orm": "^3.0.0",
-    "@zenstackhq/schema": "^3.0.0",
-    "decimal.js": "^10.6.0",
-    "superjson": "^2.2.6"
+    "@zenstackhq/schema": "^3.0.0"
   },
   "devDependencies": {
     "@pinia/colada": "^0.20.0",

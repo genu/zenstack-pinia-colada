@@ -20,12 +20,6 @@ importers:
       '@zenstackhq/schema':
         specifier: ^3.0.0
         version: 3.0.0
-      decimal.js:
-        specifier: ^10.6.0
-        version: 10.6.0
-      superjson:
-        specifier: ^2.2.6
-        version: 2.2.6
     devDependencies:
       '@pinia/colada':
         specifier: ^0.20.0
