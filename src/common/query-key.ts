@@ -1,6 +1,3 @@
-/**
- * Prefix for react-query keys.
- */
 export const QUERY_KEY_PREFIX = "zenstack"
 
 export type QueryKey = [
