@@ -64,7 +64,6 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.4",
-    "pinia": "^3.0.4",
     "prettier": "^3.7.4",
     "tsdown": "^0.18.3",
     "typescript": "^5.9.3",
