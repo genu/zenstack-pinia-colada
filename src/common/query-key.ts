@@ -1,18 +1,18 @@
 /**
  * Prefix for react-query keys.
  */
-export const QUERY_KEY_PREFIX = 'zenstack';
+export const QUERY_KEY_PREFIX = "zenstack"
 
 export type QueryKey = [
-    string /* prefix */,
-    string /* model */,
-    string /* operation */,
-    unknown /* args */,
-    {
-        infinite: boolean;
-        optimisticUpdate: boolean;
-    } /* flags */,
-];
+  string /* prefix */,
+  string /* model */,
+  string /* operation */,
+  unknown /* args */,
+  {
+    infinite: boolean
+    optimisticUpdate: boolean
+  } /* flags */,
+]
 
 /**
  * Computes query key for the given model, operation and query args.
@@ -23,36 +23,36 @@ export type QueryKey = [
  * @returns Query key
  */
 export function getQueryKey(
-    model: string,
-    operation: string,
-    args: unknown,
-    options: { infinite: boolean; optimisticUpdate: boolean } = { infinite: false, optimisticUpdate: true },
+  model: string,
+  operation: string,
+  args: unknown,
+  options: { infinite: boolean; optimisticUpdate: boolean } = { infinite: false, optimisticUpdate: true },
 ): QueryKey {
-    const infinite = options.infinite;
-    // infinite query doesn't support optimistic updates
-    const optimisticUpdate = options.infinite ? false : options.optimisticUpdate;
-    return [QUERY_KEY_PREFIX, model, operation!, args, { infinite, optimisticUpdate }];
+  const infinite = options.infinite
+  // infinite query doesn't support optimistic updates
+  const optimisticUpdate = options.infinite ? false : options.optimisticUpdate
+  return [QUERY_KEY_PREFIX, model, operation!, args, { infinite, optimisticUpdate }]
 }
 
 /**
  * Parses the given query key into its components.
  */
 export function parseQueryKey(queryKey: readonly unknown[]) {
-    const [prefix, model, operation, args, flags] = queryKey as QueryKey;
-    if (prefix !== QUERY_KEY_PREFIX) {
-        return undefined;
-    }
-    return { model, operation, args, flags };
+  const [prefix, model, operation, args, flags] = queryKey as QueryKey
+  if (prefix !== QUERY_KEY_PREFIX) {
+    return undefined
+  }
+  return { model, operation, args, flags }
 }
 
 export function isZenStackQueryKey(queryKey: readonly unknown[]): queryKey is QueryKey {
-    if (queryKey.length < 5) {
-        return false;
-    }
+  if (queryKey.length < 5) {
+    return false
+  }
 
-    if (queryKey[0] !== QUERY_KEY_PREFIX) {
-        return false;
-    }
+  if (queryKey[0] !== QUERY_KEY_PREFIX) {
+    return false
+  }
 
-    return true;
+  return true
 }
