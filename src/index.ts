@@ -58,6 +58,7 @@ import type {
 } from "./common/types"
 
 export type { FetchFn } from "@zenstackhq/client-helpers/fetch"
+export type { SchemaDef } from "@zenstackhq/schema"
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
 
 /**
@@ -85,12 +86,12 @@ function useQuerySettings() {
   return { endpoint: endpoint ?? DEFAULT_QUERY_ENDPOINT, ...rest }
 }
 
-export type ModelQueryOptions<T> = MaybeRefOrGetter<Omit<UnwrapRef<UseQueryOptions<T>>, "key"> & ExtraQueryOptions>
+export type ModelQueryOptions<T> = MaybeRefOrGetter<Omit<UnwrapRef<UseQueryOptions<T>>, "key" | "query"> & ExtraQueryOptions>
 
 export type ModelQueryResult<T> = UseQueryReturn<WithOptimistic<T>, Error> & { queryKey: () => EntryKey }
 
 export type ModelInfiniteQueryOptions<T> = MaybeRefOrGetter<
-  Omit<UnwrapRef<UseInfiniteQueryOptions<T, Error, any, undefined>>, "key" | "initialPageParam"> & QueryContext
+  Omit<UnwrapRef<UseInfiniteQueryOptions<T, Error, any, undefined>>, "key" | "initialPageParam" | "query"> & QueryContext
 >
 
 export type ModelInfiniteQueryResult<T> = UseInfiniteQueryReturn<T, Error> & { queryKey: () => EntryKey }
