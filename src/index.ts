@@ -363,8 +363,11 @@ export function useInternalInfiniteQuery<TQueryFnData>(
     return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
   }
 
-  // reactive query options
-  const finalOptions: any = computed(() => {
+  // Pinia Colada has a bug where computePageParams (line 897) accesses options.getNextPageParam
+  // directly without unwrapping. We work around this by wrapping in a getter function that
+  // Pinia Colada will call via toValue(), which returns a plain object with the properties.
+  // This maintains reactivity while ensuring getNextPageParam is accessible.
+  const infiniteOptions: any = () => {
     const argsValue = toValue(args)
     const optionsValue = toValue(options) ?? {}
 
@@ -384,10 +387,11 @@ export function useInternalInfiniteQuery<TQueryFnData>(
       getNextPageParam,
       getPreviousPageParam,
     }
-  })
+  }
+
   return {
     queryKey,
-    ...useInfiniteQuery(finalOptions),
+    ...useInfiniteQuery(infiniteOptions),
   }
 }
 
