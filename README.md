@@ -154,6 +154,46 @@ Each model gets these mutation hooks:
 
 ## Advanced Features
 
+### Working with Reactive Parameters
+
+Pinia Colada automatically tracks reactive dependencies in your queries. When using reactive values (refs, computed), wrap your query arguments in a getter function:
+
+```typescript
+import { ref, computed } from 'vue'
+
+const userId = ref('123')
+const includeDeleted = ref(false)
+
+// ✅ Correct: Use a getter function
+const { data: posts } = queries.post.useFindMany(() => ({
+  where: {
+    authorId: userId.value,  // Unwrap refs inside the getter
+    deletedAt: includeDeleted.value ? undefined : null
+  },
+}))
+
+// When userId or includeDeleted changes, the query automatically re-runs!
+```
+
+**Why use a getter function?**
+
+The getter function `() => ({...})` allows Pinia Colada to track when your reactive values change and automatically re-fetch the query. Inside the getter, unwrap refs with `.value`.
+
+**Alternative patterns:**
+
+```typescript
+// Using computed (also works)
+const queryArgs = computed(() => ({
+  where: { authorId: userId.value }
+}))
+const { data } = queries.post.useFindMany(queryArgs)
+
+// Static queries (no reactivity needed)
+const { data } = queries.post.useFindMany({
+  where: { published: true }  // No getter needed for static values
+})
+```
+
 ### Optimistic Updates
 
 Optimistic updates allow the UI to update immediately before the server responds:
