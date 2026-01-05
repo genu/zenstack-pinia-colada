@@ -366,15 +366,24 @@ export function useInternalInfiniteQuery<TQueryFnData>(
   // reactive query options
   const finalOptions: any = computed(() => {
     const argsValue = toValue(args)
-    const optionsValue = toValue(options)
+    const optionsValue = toValue(options) ?? {}
+
+    // Extract pagination params to ensure they're preserved
+    const { getNextPageParam, getPreviousPageParam, ...restOptions } = optionsValue
+
     return {
       key: queryKey,
       initialPageParam: toValue(argsValue),
-      ...optionsValue,
-      query: ({ signal }: any) => {
-        const reqUrl = makeUrl(endpoint, model, operation, argsValue)
+      ...restOptions,
+      query: ({ signal, pageParam }: any) => {
+        const finalArgs = pageParam && typeof pageParam === 'object'
+          ? { ...(argsValue as object), ...(pageParam as object) }
+          : argsValue
+        const reqUrl = makeUrl(endpoint, model, operation, finalArgs)
         return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
       },
+      getNextPageParam,
+      getPreviousPageParam,
     }
   })
   return {
