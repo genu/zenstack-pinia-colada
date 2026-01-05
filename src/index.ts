@@ -363,22 +363,23 @@ export function useInternalInfiniteQuery<TQueryFnData>(
     return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
   }
 
-  const argsValue = toValue(args)
+  const finalOptions: any = computed(() => {
+    const argsValue = toValue(args)
+    const optionsValue = toValue(options)
 
-  const infiniteOptions: any = {
-    key: queryKey,
-    initialPageParam: toValue(argsValue),
-    query: ({ signal, pageParam }: any) => {
-      const finalArgs = pageParam && typeof pageParam === "object" ? { ...(argsValue as object), ...(pageParam as object) } : argsValue
-      const reqUrl = makeUrl(endpoint, model, operation, finalArgs)
-      return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
-    },
-    ...options,
-  }
+    return {
+      key: queryKey,
+      initialPageParam: toValue(argsValue),
+      ...optionsValue,
+      query: ({ signal }: any) => {
+        const reqUrl = makeUrl(endpoint, model, operation, argsValue)
+      },
+    }
+  })
 
   return {
     queryKey,
-    ...useInfiniteQuery(infiniteOptions),
+    ...useInfiniteQuery(finalOptions),
   }
 }
 
