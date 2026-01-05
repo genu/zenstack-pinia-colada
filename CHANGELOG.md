@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.8
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.7...v0.1.8)
+
+### 🩹 Fixes
+
+- Resolve reactivity issue in useInternalInfiniteQuery by wrapping options in a getter ([2440f6a](https://github.com/genu/zenstack-pinia-colada/commit/2440f6a))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.7
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.6...v0.1.7)
