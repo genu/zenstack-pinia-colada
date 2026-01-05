@@ -1,6 +1,6 @@
 {
   "name": "zenstack-pinia-colada",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Pinia Colada Client for consuming ZenStack v3's CRUD service",
   "keywords": [
     "data-fetching",

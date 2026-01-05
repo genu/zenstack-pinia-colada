@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.1.7
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.6...v0.1.7)
+
+### 🩹 Fixes
+
+- Ensure pagination parameters are preserved in internal infinite query options ([218332e](https://github.com/genu/zenstack-pinia-colada/commit/218332e))
+
+### 📖 Documentation
+
+- Add section on working with reactive parameters in queries ([66ac393](https://github.com/genu/zenstack-pinia-colada/commit/66ac393))
+
+### 🏡 Chore
+
+- Lint ([3b5ff32](https://github.com/genu/zenstack-pinia-colada/commit/3b5ff32))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.6
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.5...v0.1.6)
