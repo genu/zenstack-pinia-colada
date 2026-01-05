@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.10
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.9...v0.1.10)
+
+### 🩹 Fixes
+
+- Refactor infiniteOptions to maintain reactivity and simplify structure ([a23f13b](https://github.com/genu/zenstack-pinia-colada/commit/a23f13b))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.9
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.8...v0.1.9)
