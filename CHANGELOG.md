@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.11
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.10...v0.1.11)
+
+### 🩹 Fixes
+
+- Refactor useInternalInfiniteQuery to improve reactivity and simplify options handling ([6c2c6a8](https://github.com/genu/zenstack-pinia-colada/commit/6c2c6a8))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.10
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.9...v0.1.10)
