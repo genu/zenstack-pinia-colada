@@ -363,30 +363,17 @@ export function useInternalInfiniteQuery<TQueryFnData>(
     return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
   }
 
-  // Pinia Colada has a bug where computePageParams (line 897) accesses options.getNextPageParam
-  // directly without unwrapping. We work around this by wrapping in a getter function that
-  // Pinia Colada will call via toValue(), which returns a plain object with the properties.
-  // This maintains reactivity while ensuring getNextPageParam is accessible.
-  const infiniteOptions: any = () => {
-    const argsValue = toValue(args)
-    const optionsValue = toValue(options) ?? {}
+  const argsValue = toValue(args)
 
-    // Extract pagination params to ensure they're preserved
-    const { getNextPageParam, getPreviousPageParam, ...restOptions } = optionsValue
-
-    return {
-      key: queryKey,
-      initialPageParam: toValue(argsValue),
-      ...restOptions,
-      query: ({ signal, pageParam }: any) => {
-        const finalArgs =
-          pageParam && typeof pageParam === "object" ? { ...(argsValue as object), ...(pageParam as object) } : argsValue
-        const reqUrl = makeUrl(endpoint, model, operation, finalArgs)
-        return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
-      },
-      getNextPageParam,
-      getPreviousPageParam,
-    }
+  const infiniteOptions: any = {
+    key: queryKey,
+    initialPageParam: toValue(argsValue),
+    query: ({ signal, pageParam }: any) => {
+      const finalArgs = pageParam && typeof pageParam === "object" ? { ...(argsValue as object), ...(pageParam as object) } : argsValue
+      const reqUrl = makeUrl(endpoint, model, operation, finalArgs)
+      return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
+    },
+    ...options,
   }
 
   return {
