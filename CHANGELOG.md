@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.9
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.8...v0.1.9)
+
 ## v0.1.8
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.7...v0.1.8)
