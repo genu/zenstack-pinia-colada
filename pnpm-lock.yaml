@@ -8,28 +8,28 @@ importers:
 
   .:
     dependencies:
-      '@zenstackhq/client-helpers':
-        specifier: 3.1.0
-        version: 3.1.0
-      '@zenstackhq/common-helpers':
-        specifier: 3.1.0
-        version: 3.1.0
-      '@zenstackhq/orm':
-        specifier: 3.1.0
-        version: 3.1.0(zod@4.1.12)
-      '@zenstackhq/schema':
-        specifier: 3.1.0
-        version: 3.1.0
       pinia:
         specifier: ^3.0.0
         version: 3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
     devDependencies:
       '@pinia/colada':
-        specifier: ^0.20.0
-        version: 0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
+        specifier: ^0.21.0
+        version: 0.21.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
       '@types/node':
         specifier: ^25.0.3
         version: 25.0.3
+      '@zenstackhq/client-helpers':
+        specifier: 3.1.1
+        version: 3.1.1
+      '@zenstackhq/common-helpers':
+        specifier: 3.1.1
+        version: 3.1.1
+      '@zenstackhq/orm':
+        specifier: 3.1.1
+        version: 3.1.1(zod@4.1.12)
+      '@zenstackhq/schema':
+        specifier: 3.1.1
+        version: 3.1.1
       changelogen:
         specifier: ^0.6.2
         version: 0.6.2
@@ -167,8 +167,8 @@ packages:
   '@paralleldrive/cuid2@2.3.1':
     resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
 
-  '@pinia/colada@0.20.0':
-    resolution: {integrity: sha512-IY8ssG7xsVlIq5uvnkQtPMKJ4NHxGeeP04HFKR46DOe58UY07JQFKvbDOj3d+nX/Ki+VAb3TGeHIqQdBWf0eWQ==}
+  '@pinia/colada@0.21.0':
+    resolution: {integrity: sha512-Y7c4gRsZcZCOyxKFbvSadC55sHKJJqKjD3KC1wiOBFl9ubqBlzqOPZl7fj0LkoqbsZYGqAdA0FtNfe9cvgQOXA==}
     peerDependencies:
       pinia: ^2.2.6 || ^3.0.0
       vue: ^3.5.17
@@ -287,20 +287,11 @@ packages:
   '@vue/devtools-api@7.7.7':
     resolution: {integrity: sha512-lwOnNBH2e7x1fIIbVT7yF5D+YWhqELm55/4ZKf45R9T8r9dE2AIOy8HKjfqzGsoTHFbWbr337O4E0A0QADnjBg==}
 
-  '@vue/devtools-api@8.0.5':
-    resolution: {integrity: sha512-DgVcW8H/Nral7LgZEecYFFYXnAvGuN9C3L3DtWekAncFBedBczpNW8iHKExfaM559Zm8wQWrwtYZ9lXthEHtDw==}
-
   '@vue/devtools-kit@7.7.7':
     resolution: {integrity: sha512-wgoZtxcTta65cnZ1Q6MbAfePVFxfM+gq0saaeytoph7nEa7yMXoi6sCPy4ufO111B9msnw0VOWjPEFCXuAKRHA==}
 
-  '@vue/devtools-kit@8.0.5':
-    resolution: {integrity: sha512-q2VV6x1U3KJMTQPUlRMyWEKVbcHuxhqJdSr6Jtjz5uAThAIrfJ6WVZdGZm5cuO63ZnSUz0RCsVwiUUb0mDV0Yg==}
-
   '@vue/devtools-shared@7.7.7':
     resolution: {integrity: sha512-+udSj47aRl5aKb0memBvcUG9koarqnxNM5yjuREvqwK6T3ap4mn3Zqqc17QrBFTqSMjr3HK1cvStEZpMDpfdyw==}
-
-  '@vue/devtools-shared@8.0.5':
-    resolution: {integrity: sha512-bRLn6/spxpmgLk+iwOrR29KrYnJjG9DGpHGkDFG82UM21ZpJ39ztUT9OXX3g+usW7/b2z+h46I9ZiYyB07XMXg==}
 
   '@vue/reactivity@3.5.26':
     resolution: {integrity: sha512-9EnYB1/DIiUYYnzlnUBgwU32NNvLp/nhxLXeWRhHUEeWNTn1ECxX8aGO7RTXeX6PPcxe3LLuNBFoJbV4QZ+CFQ==}
@@ -319,14 +310,14 @@ packages:
   '@vue/shared@3.5.26':
     resolution: {integrity: sha512-7Z6/y3uFI5PRoKeorTOSXKcDj0MSasfNNltcslbFrPpcw6aXRUALq4IfJlaTRspiWIUOEZbrpM+iQGmCOiWe4A==}
 
-  '@zenstackhq/client-helpers@3.1.0':
-    resolution: {integrity: sha512-LqCZFh2/eVf/nCfPMUKNJYVQKGGKGDDrNR0HzRPiegeNjJDAUW9b2+Wot64YPskkWerpn3jZJ/qQFsuaWYPF+Q==}
+  '@zenstackhq/client-helpers@3.1.1':
+    resolution: {integrity: sha512-8lmbTz6UFIoHtkksoXM5zUGq/q4Ni710m2OjyqAK9USMh9ZfHILv/vz1jpI1DCuQeAFqPR5RhAa5k3IRhLMgSA==}
 
-  '@zenstackhq/common-helpers@3.1.0':
-    resolution: {integrity: sha512-S4S5hYopHOVzK3A0nmJReqpug5XKyh+h2pWsCIA8pEB7wTWt+5Ppyo1NoEB8iPH2jFdMh+Q1m/9pVPXVpHXDbQ==}
+  '@zenstackhq/common-helpers@3.1.1':
+    resolution: {integrity: sha512-QB75r8f0lgeVNNXmBeqRHPvtit2EqaGPlzR9OfIzW2v9QjCBFt8jGqlNBky8Y7x/Up2MkJ1+UvUBDxAHGWfXOg==}
 
-  '@zenstackhq/orm@3.1.0':
-    resolution: {integrity: sha512-uw2S+mBXG1jXEWWyWPcx04d6eWCyX1KPrqkh2VTkqVBfZpB8OQbxdIyi0YCCUWE0JG7VwANgUGtZw17TLzlMeQ==}
+  '@zenstackhq/orm@3.1.1':
+    resolution: {integrity: sha512-Blo1P9qrWaVXaom4y+FUKj9SqleRbE/VJ3debqo4e8zbmcv1UGdSOO3X4AHuNLHDWZJ7attrWbaB6IOnKEJxow==}
     peerDependencies:
       better-sqlite3: ^12.5.0
       pg: ^8.13.1
@@ -340,8 +331,8 @@ packages:
       sql.js:
         optional: true
 
-  '@zenstackhq/schema@3.1.0':
-    resolution: {integrity: sha512-dXqnZaZ0+BWf8/pl1rMal5aRN7AFoy+PKa2LGBHCqiNZwxz7Ad0aaXyIezzaZ7N+1yIxMPKtGC5CASe+9QmPhw==}
+  '@zenstackhq/schema@3.1.1':
+    resolution: {integrity: sha512-G+wyCHAr7eCRzsaRPTjE4Jr6IEeFZdQo1Mn6Ivqq7CghEciFUiA9TF4CJqtjUMqsrg2Wjhu69m1EdAUO4B283g==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -1263,9 +1254,8 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.8.0
 
-  '@pinia/colada@0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
+  '@pinia/colada@0.21.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@vue/devtools-api': 8.0.5
       pinia: 3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
       vue: 3.5.26(typescript@5.9.3)
 
@@ -1365,10 +1355,6 @@ snapshots:
     dependencies:
       '@vue/devtools-kit': 7.7.7
 
-  '@vue/devtools-api@8.0.5':
-    dependencies:
-      '@vue/devtools-kit': 8.0.5
-
   '@vue/devtools-kit@7.7.7':
     dependencies:
       '@vue/devtools-shared': 7.7.7
@@ -1379,21 +1365,7 @@ snapshots:
       speakingurl: 14.0.1
       superjson: 2.2.6
 
-  '@vue/devtools-kit@8.0.5':
-    dependencies:
-      '@vue/devtools-shared': 8.0.5
-      birpc: 2.8.0
-      hookable: 5.5.3
-      mitt: 3.0.1
-      perfect-debounce: 2.0.0
-      speakingurl: 14.0.1
-      superjson: 2.2.6
-
   '@vue/devtools-shared@7.7.7':
-    dependencies:
-      rfdc: 1.4.1
-
-  '@vue/devtools-shared@8.0.5':
     dependencies:
       rfdc: 1.4.1
 
@@ -1421,20 +1393,20 @@ snapshots:
 
   '@vue/shared@3.5.26': {}
 
-  '@zenstackhq/client-helpers@3.1.0':
+  '@zenstackhq/client-helpers@3.1.1':
     dependencies:
-      '@zenstackhq/common-helpers': 3.1.0
-      '@zenstackhq/schema': 3.1.0
+      '@zenstackhq/common-helpers': 3.1.1
+      '@zenstackhq/schema': 3.1.1
       decimal.js: 10.6.0
       superjson: 2.2.6
 
-  '@zenstackhq/common-helpers@3.1.0': {}
+  '@zenstackhq/common-helpers@3.1.1': {}
 
-  '@zenstackhq/orm@3.1.0(zod@4.1.12)':
+  '@zenstackhq/orm@3.1.1(zod@4.1.12)':
     dependencies:
       '@paralleldrive/cuid2': 2.3.1
-      '@zenstackhq/common-helpers': 3.1.0
-      '@zenstackhq/schema': 3.1.0
+      '@zenstackhq/common-helpers': 3.1.1
+      '@zenstackhq/schema': 3.1.1
       cuid: 3.0.0
       decimal.js: 10.6.0
       json-stable-stringify: 1.3.0
@@ -1447,7 +1419,7 @@ snapshots:
       zod: 4.1.12
       zod-validation-error: 4.0.2(zod@4.1.12)
 
-  '@zenstackhq/schema@3.1.0':
+  '@zenstackhq/schema@3.1.1':
     dependencies:
       decimal.js: 10.6.0
 

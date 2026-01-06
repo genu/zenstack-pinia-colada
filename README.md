@@ -23,8 +23,10 @@ yarn add zenstack-pinia-colada @pinia/colada pinia
 
 ## Prerequisites
 
-1. You need a ZenStack project set up. See [ZenStack documentation](https://zenstack.dev/docs/welcome) for details.
+1. You need a ZenStack project set up (v3.0.0 or higher). See [ZenStack documentation](https://zenstack.dev/docs/welcome) for details.
 2. Generate your ZenStack schema using `npx zenstack generate`
+
+**Note:** This library requires ZenStack v3 to be installed in your project. The library will use your installed version of ZenStack packages.
 
 ## Quick Start
 
