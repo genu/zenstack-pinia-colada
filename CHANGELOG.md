@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.12
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.11...v0.1.12)
+
+### 🩹 Fixes
+
+- Update dependencies to ZenStack v3.1.1 and Pinia Colada v0.21.0 ([c5ceb0c](https://github.com/genu/zenstack-pinia-colada/commit/c5ceb0c))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.11
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.10...v0.1.11)
