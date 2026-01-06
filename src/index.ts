@@ -418,79 +418,76 @@ export function useInternalMutation<TArgs, R = any>(
     return fetcher<R>(reqUrl, fetchInit, fetch) as Promise<R>
   }
 
-  // reactive mutation options
-  const finalOptions = computed(() => {
-    const optionsValue = toValue(options)
-    const result = {
-      ...optionsValue,
-      mutation: mutationFn,
-    } as UnwrapRef<UseMutationOptions<R, TArgs>> & ExtraMutationOptions
+  // build mutation options
+  const optionsValue = toValue(options)
+  const result = {
+    ...optionsValue,
+    mutation: mutationFn,
+  } as UnwrapRef<UseMutationOptions<R, TArgs>> & ExtraMutationOptions
 
-    const invalidateQueries = optionsValue?.invalidateQueries !== false
-    const optimisticUpdate = !!optionsValue?.optimisticUpdate
+  const invalidateQueries = optionsValue?.invalidateQueries !== false
+  const optimisticUpdate = !!optionsValue?.optimisticUpdate
 
-    if (!optimisticUpdate) {
-      if (invalidateQueries) {
-        const invalidator = createInvalidator(
-          model,
-          operation,
-          schema,
-          (predicate: InvalidationPredicate) => {
-            invalidateQueriesMatchingPredicate(queryCache, predicate)
-          },
-          logging,
-        )
-        // execute invalidator prior to user-provided onSuccess
-        result.onSuccess = async (...args) => {
-          await invalidator(...args)
-          const origOnSuccess: any = toValue(optionsValue?.onSuccess)
-          await origOnSuccess?.(...args)
-        }
-      }
-    } else {
-      const optimisticUpdater = createOptimisticUpdater(
+  if (!optimisticUpdate) {
+    if (invalidateQueries) {
+      const invalidator = createInvalidator(
         model,
         operation,
         schema,
-        { optimisticDataProvider: result.optimisticDataProvider },
-        () => getAllQueries(queryCache),
+        (predicate: InvalidationPredicate) => {
+          invalidateQueriesMatchingPredicate(queryCache, predicate)
+        },
         logging,
       )
-
-      // optimistic update on mutate
-      const origOnMutate = result.onMutate
-      result.onMutate = async (...args) => {
-        // execute optimistic updater prior to user-provided onMutate
-        await optimisticUpdater(...args)
-
-        // call user-provided onMutate
-        return unref(origOnMutate)?.(...args)
-      }
-
-      if (invalidateQueries) {
-        const invalidator = createInvalidator(
-          model,
-          operation,
-          schema,
-          (predicate: InvalidationPredicate) => {
-            invalidateQueriesMatchingPredicate(queryCache, predicate)
-          },
-          logging,
-        )
-        const origOnSettled = result.onSettled
-        result.onSettled = async (...args) => {
-          // execute invalidator prior to user-provided onSettled
-          await invalidator(...args)
-
-          // call user-provided onSettled
-          return unref(origOnSettled)?.(...args)
-        }
+      // execute invalidator prior to user-provided onSuccess
+      result.onSuccess = async (...args) => {
+        await invalidator(...args)
+        const origOnSuccess: any = toValue(optionsValue?.onSuccess)
+        await origOnSuccess?.(...args)
       }
     }
-    return result
-  })
+  } else {
+    const optimisticUpdater = createOptimisticUpdater(
+      model,
+      operation,
+      schema,
+      { optimisticDataProvider: result.optimisticDataProvider },
+      () => getAllQueries(queryCache),
+      logging,
+    )
 
-  return useMutation(finalOptions as any)
+    // optimistic update on mutate
+    const origOnMutate = result.onMutate
+    result.onMutate = async (...args) => {
+      // execute optimistic updater prior to user-provided onMutate
+      await optimisticUpdater(...args)
+
+      // call user-provided onMutate
+      return unref(origOnMutate)?.(...args)
+    }
+
+    if (invalidateQueries) {
+      const invalidator = createInvalidator(
+        model,
+        operation,
+        schema,
+        (predicate: InvalidationPredicate) => {
+          invalidateQueriesMatchingPredicate(queryCache, predicate)
+        },
+        logging,
+      )
+      const origOnSettled = result.onSettled
+      result.onSettled = async (...args) => {
+        // execute invalidator prior to user-provided onSettled
+        await invalidator(...args)
+
+        // call user-provided onSettled
+        return unref(origOnSettled)?.(...args)
+      }
+    }
+  }
+
+  return useMutation(result as any)
 }
 
 function useFetchOptions(options: MaybeRefOrGetter<QueryContext | undefined>) {
