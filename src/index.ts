@@ -243,6 +243,10 @@ export function useModelQueries<Schema extends SchemaDef, Model extends GetModel
     })
   }
 
+  const mergeMutation = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
+    return { ...(toValue(rootOpt) as object), ...(toValue(opt) as object) }
+  }
+
   return {
     useFindUnique: (args: any, options?: any) => {
       return useInternalQuery(schema, modelName, "findUnique", args, merge(rootOptions, options))
@@ -261,39 +265,39 @@ export function useModelQueries<Schema extends SchemaDef, Model extends GetModel
     },
 
     useCreate: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "create", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "POST", "create", mergeMutation(rootOptions, options))
     },
 
     useCreateMany: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "createMany", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "POST", "createMany", mergeMutation(rootOptions, options))
     },
 
     useCreateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "createManyAndReturn", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "POST", "createManyAndReturn", mergeMutation(rootOptions, options))
     },
 
     useUpdate: (options?: any) => {
-      return useInternalMutation(schema, modelName, "PUT", "update", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "PUT", "update", mergeMutation(rootOptions, options))
     },
 
     useUpdateMany: (options?: any) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateMany", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "PUT", "updateMany", mergeMutation(rootOptions, options))
     },
 
     useUpdateManyAndReturn: (options?: any) => {
-      return useInternalMutation(schema, modelName, "PUT", "updateManyAndReturn", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "PUT", "updateManyAndReturn", mergeMutation(rootOptions, options))
     },
 
     useUpsert: (options?: any) => {
-      return useInternalMutation(schema, modelName, "POST", "upsert", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "POST", "upsert", mergeMutation(rootOptions, options))
     },
 
     useDelete: (options?: any) => {
-      return useInternalMutation(schema, modelName, "DELETE", "delete", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "DELETE", "delete", mergeMutation(rootOptions, options))
     },
 
     useDeleteMany: (options?: any) => {
-      return useInternalMutation(schema, modelName, "DELETE", "deleteMany", merge(rootOptions, options))
+      return useInternalMutation(schema, modelName, "DELETE", "deleteMany", mergeMutation(rootOptions, options))
     },
 
     useCount: (args: any, options?: any) => {
