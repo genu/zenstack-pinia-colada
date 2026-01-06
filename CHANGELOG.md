@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.13
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.12...v0.1.13)
+
+### 🩹 Fixes
+
+- Refactor useInternalMutation to streamline mutation options handling and improve reactivity ([38386f0](https://github.com/genu/zenstack-pinia-colada/commit/38386f0))
+- Refactor mutation handling in useModelQueries to improve code reusability and maintainability ([253a87e](https://github.com/genu/zenstack-pinia-colada/commit/253a87e))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.12
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.11...v0.1.12)
