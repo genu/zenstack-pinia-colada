@@ -52,8 +52,7 @@
     "prepublishOnly": "pnpm run build",
     "prepack": "pnpm run build",
     "changelogen": "changelogen",
-    "release": "pnpm test:all && changelogen --release && npm publish",
-    "release:push-tags": "git push --follow-tags"
+    "release": "pnpm test:all && changelogen --release && pnpm publish && git push --follow-tags"
   },
   "devDependencies": {
     "@pinia/colada": "^0.21.1",
