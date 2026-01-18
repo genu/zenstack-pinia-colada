@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.1.14
+
+[compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.13...v0.1.14)
+
+### 🚀 Enhancements
+
+- Add procedure hooks and `exists` api ([9342cb9](https://github.com/genu/zenstack-pinia-colada/commit/9342cb9))
+
+### 🏡 Chore
+
+- Update dependencies ([963c59d](https://github.com/genu/zenstack-pinia-colada/commit/963c59d))
+
+### ✅ Tests
+
+- Add comprehensive typing tests and query key validation ([3d60f70](https://github.com/genu/zenstack-pinia-colada/commit/3d60f70))
+
+### ❤️ Contributors
+
+- Eugen Istoc <eugenistoc@gmail.com>
+
 ## v0.1.13
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.12...v0.1.13)
