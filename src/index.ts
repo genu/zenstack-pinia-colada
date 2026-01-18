@@ -10,11 +10,15 @@ import type {
   CreateManyArgs,
   DeleteArgs,
   DeleteManyArgs,
+  ExistsArgs,
   FindFirstArgs,
   FindManyArgs,
   FindUniqueArgs,
+  GetProcedure,
+  GetProcedureNames,
   GroupByArgs,
   GroupByResult,
+  ProcedureEnvelope,
   QueryOptions,
   SelectSubset,
   SimplifiedPlainResult,
@@ -48,10 +52,12 @@ import {
 } from "@zenstackhq/client-helpers"
 import { fetcher, makeUrl, marshal } from "@zenstackhq/client-helpers/fetch"
 import { getAllQueries, invalidateQueriesMatchingPredicate } from "./common/client"
+import { CUSTOM_PROC_ROUTE_NAME } from "./common/constants"
 import { getQueryKey } from "./common/query-key"
 import type {
   ExtraMutationOptions,
   ExtraQueryOptions,
+  ProcedureReturn,
   QueryContext,
   TrimDelegateModelOperations,
   WithOptimistic,
@@ -115,9 +121,45 @@ export type ModelMutationModelResult<
   ): Promise<SimplifiedResult<Schema, Model, T, Options, false, Array>>
 }
 
+type ProcedureHookFn<
+  Schema extends SchemaDef,
+  ProcName extends GetProcedureNames<Schema>,
+  Options,
+  Result,
+  Input = ProcedureEnvelope<Schema, ProcName>,
+> = { args: undefined } extends Input
+  ? (args?: MaybeRefOrGetter<Input>, options?: MaybeRefOrGetter<Options>) => Result
+  : (args: MaybeRefOrGetter<Input>, options?: MaybeRefOrGetter<Options>) => Result
+
+type ProcedureHookGroup<Schema extends SchemaDef> = {
+  [Name in GetProcedureNames<Schema>]: GetProcedure<Schema, Name> extends { mutation: true }
+    ? {
+        useMutation(
+          options?: MaybeRefOrGetter<Omit<UnwrapRef<UseMutationOptions<ProcedureReturn<Schema, Name>, ProcedureEnvelope<Schema, Name>>>, "mutation"> & QueryContext>,
+        ): UseMutationReturn<ProcedureReturn<Schema, Name>, ProcedureEnvelope<Schema, Name>, Error>
+      }
+    : {
+        useQuery: ProcedureHookFn<
+          Schema,
+          Name,
+          Omit<ModelQueryOptions<ProcedureReturn<Schema, Name>>, "optimisticUpdate">,
+          UseQueryReturn<ProcedureReturn<Schema, Name>, Error> & { queryKey: () => EntryKey }
+        >
+      }
+}
+
+export type ProcedureHooks<Schema extends SchemaDef> = Schema extends { procedures: Record<string, any> }
+  ? {
+      /**
+       * Custom procedures.
+       */
+      $procs: ProcedureHookGroup<Schema>
+    }
+  : {}
+
 export type ClientHooks<Schema extends SchemaDef, Options extends QueryOptions<Schema> = QueryOptions<Schema>> = {
   [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options>
-}
+} & ProcedureHooks<Schema>
 
 // Note that we can potentially use TypeScript's mapped type to directly map from ORM contract, but that seems
 // to significantly slow down tsc performance ...
@@ -138,6 +180,11 @@ export type ModelQueryHooks<
       args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options> | null>>,
     ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options> | null>
+
+    useExists<T extends ExistsArgs<Schema, Model>>(
+      args?: MaybeRefOrGetter<Subset<T, ExistsArgs<Schema, Model>>>,
+      options?: MaybeRefOrGetter<ModelQueryOptions<boolean>>,
+    ): ModelQueryResult<boolean>
 
     useFindMany<T extends FindManyArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
@@ -209,7 +256,19 @@ export function useClientQueries<Schema extends SchemaDef, Options extends Query
   schema: Schema,
   options?: MaybeRefOrGetter<QueryContext>,
 ): ClientHooks<Schema, Options> {
-  return Object.keys(schema.models).reduce(
+  const merge = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
+    return computed(() => {
+      const rootVal = toValue(rootOpt) ?? {}
+      const optVal = toValue(opt) ?? {}
+      return { ...(rootVal as object), ...(optVal as object) }
+    })
+  }
+
+  const mergeMutation = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
+    return { ...(toValue(rootOpt) as object), ...(toValue(opt) as object) }
+  }
+
+  const result = Object.keys(schema.models).reduce(
     (acc, model) => {
       ;(acc as any)[lowerCaseFirst(model)] = useModelQueries<Schema, GetModels<Schema>, Options>(
         schema,
@@ -220,6 +279,31 @@ export function useClientQueries<Schema extends SchemaDef, Options extends Query
     },
     {} as ClientHooks<Schema, Options>,
   )
+
+  const procedures = (schema as any).procedures as Record<string, { mutation?: boolean }> | undefined
+  if (procedures) {
+    const buildProcedureHooks = () => {
+      return Object.keys(procedures).reduce((acc, name) => {
+        const procDef = procedures[name]
+        if (procDef?.mutation) {
+          acc[name] = {
+            useMutation: (hookOptions?: any) =>
+              useInternalMutation(schema, CUSTOM_PROC_ROUTE_NAME, "POST", name, mergeMutation(options, hookOptions)),
+          }
+        } else {
+          acc[name] = {
+            useQuery: (args?: any, hookOptions?: any) =>
+              useInternalQuery(schema, CUSTOM_PROC_ROUTE_NAME, name, args, merge(options, hookOptions)),
+          }
+        }
+        return acc
+      }, {} as any)
+    }
+
+    ;(result as any).$procs = buildProcedureHooks()
+  }
+
+  return result
 }
 
 /**
@@ -254,6 +338,10 @@ export function useModelQueries<Schema extends SchemaDef, Model extends GetModel
 
     useFindFirst: (args: any, options?: any) => {
       return useInternalQuery(schema, modelName, "findFirst", args, merge(rootOptions, options))
+    },
+
+    useExists: (args: any, options?: any) => {
+      return useInternalQuery(schema, modelName, "exists", args, merge(rootOptions, options))
     },
 
     useFindMany: (args: any, options?: any) => {
@@ -377,6 +465,7 @@ export function useInternalInfiniteQuery<TQueryFnData>(
       ...optionsValue,
       query: ({ signal }: any) => {
         const reqUrl = makeUrl(endpoint, model, operation, argsValue)
+        return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
       },
     }
   })
@@ -429,64 +518,67 @@ export function useInternalMutation<TArgs, R = any>(
     mutation: mutationFn,
   } as UnwrapRef<UseMutationOptions<R, TArgs>> & ExtraMutationOptions
 
-  const invalidateQueries = optionsValue?.invalidateQueries !== false
-  const optimisticUpdate = !!optionsValue?.optimisticUpdate
+  if (model !== CUSTOM_PROC_ROUTE_NAME) {
+    // not a custom procedure, set up optimistic update and invalidation
+    const invalidateQueries = optionsValue?.invalidateQueries !== false
+    const optimisticUpdate = !!optionsValue?.optimisticUpdate
 
-  if (!optimisticUpdate) {
-    if (invalidateQueries) {
-      const invalidator = createInvalidator(
-        model,
-        operation,
-        schema,
-        (predicate: InvalidationPredicate) => {
-          invalidateQueriesMatchingPredicate(queryCache, predicate)
-        },
-        logging,
-      )
-      // execute invalidator prior to user-provided onSuccess
-      result.onSuccess = async (...args) => {
-        await invalidator(...args)
-        const origOnSuccess: any = toValue(optionsValue?.onSuccess)
-        await origOnSuccess?.(...args)
+    if (!optimisticUpdate) {
+      if (invalidateQueries) {
+        const invalidator = createInvalidator(
+          model,
+          operation,
+          schema,
+          (predicate: InvalidationPredicate) => {
+            invalidateQueriesMatchingPredicate(queryCache, predicate)
+          },
+          logging,
+        )
+        // execute invalidator prior to user-provided onSuccess
+        result.onSuccess = async (...args) => {
+          await invalidator(...args)
+          const origOnSuccess: any = toValue(optionsValue?.onSuccess)
+          await origOnSuccess?.(...args)
+        }
       }
-    }
-  } else {
-    const optimisticUpdater = createOptimisticUpdater(
-      model,
-      operation,
-      schema,
-      { optimisticDataProvider: result.optimisticDataProvider },
-      () => getAllQueries(queryCache),
-      logging,
-    )
-
-    // optimistic update on mutate
-    const origOnMutate = result.onMutate
-    result.onMutate = async (...args) => {
-      // execute optimistic updater prior to user-provided onMutate
-      await optimisticUpdater(...args)
-
-      // call user-provided onMutate
-      return unref(origOnMutate)?.(...args)
-    }
-
-    if (invalidateQueries) {
-      const invalidator = createInvalidator(
+    } else {
+      const optimisticUpdater = createOptimisticUpdater(
         model,
         operation,
         schema,
-        (predicate: InvalidationPredicate) => {
-          invalidateQueriesMatchingPredicate(queryCache, predicate)
-        },
+        { optimisticDataProvider: result.optimisticDataProvider },
+        () => getAllQueries(queryCache),
         logging,
       )
-      const origOnSettled = result.onSettled
-      result.onSettled = async (...args) => {
-        // execute invalidator prior to user-provided onSettled
-        await invalidator(...args)
 
-        // call user-provided onSettled
-        return unref(origOnSettled)?.(...args)
+      // optimistic update on mutate
+      const origOnMutate = result.onMutate
+      result.onMutate = async (...args) => {
+        // execute optimistic updater prior to user-provided onMutate
+        await optimisticUpdater(...args)
+
+        // call user-provided onMutate
+        return unref(origOnMutate)?.(...args)
+      }
+
+      if (invalidateQueries) {
+        const invalidator = createInvalidator(
+          model,
+          operation,
+          schema,
+          (predicate: InvalidationPredicate) => {
+            invalidateQueriesMatchingPredicate(queryCache, predicate)
+          },
+          logging,
+        )
+        const origOnSettled = result.onSettled
+        result.onSettled = async (...args) => {
+          // execute invalidator prior to user-provided onSettled
+          await invalidator(...args)
+
+          // call user-provided onSettled
+          return unref(origOnSettled)?.(...args)
+        }
       }
     }
   }
