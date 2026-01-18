@@ -1,0 +1,169 @@
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Test fixture schema used for Pinia Colada typing tests.                                //
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+import { type SchemaDef, ExpressionUtils } from "@zenstackhq/orm/schema"
+
+export class SchemaType implements SchemaDef {
+  provider = {
+    type: "sqlite",
+  } as const
+
+  models = {
+    User: {
+      name: "User",
+      fields: {
+        id: {
+          name: "id",
+          type: "String",
+          id: true,
+          default: ExpressionUtils.call("cuid"),
+        },
+        email: {
+          name: "email",
+          type: "String",
+          unique: true,
+        },
+        name: {
+          name: "name",
+          type: "String",
+          optional: true,
+        },
+        posts: {
+          name: "posts",
+          type: "Post",
+          array: true,
+          relation: { opposite: "owner" },
+        },
+      },
+      idFields: ["id"],
+      uniqueFields: {
+        id: { type: "String" },
+        email: { type: "String" },
+      },
+    },
+    Post: {
+      name: "Post",
+      fields: {
+        id: {
+          name: "id",
+          type: "String",
+          id: true,
+          default: ExpressionUtils.call("cuid"),
+        },
+        title: {
+          name: "title",
+          type: "String",
+        },
+        owner: {
+          name: "owner",
+          type: "User",
+          optional: true,
+          relation: { opposite: "posts", fields: ["ownerId"], references: ["id"] },
+        },
+        ownerId: {
+          name: "ownerId",
+          type: "String",
+          optional: true,
+          foreignKeyFor: ["owner"],
+        },
+        category: {
+          name: "category",
+          type: "Category",
+          optional: true,
+          relation: { opposite: "posts", fields: ["categoryId"], references: ["id"] },
+        },
+        categoryId: {
+          name: "categoryId",
+          type: "String",
+          optional: true,
+          foreignKeyFor: ["category"],
+        },
+      },
+      idFields: ["id"],
+      uniqueFields: {
+        id: { type: "String" },
+      },
+    },
+    Category: {
+      name: "Category",
+      fields: {
+        id: {
+          name: "id",
+          type: "String",
+          id: true,
+          default: ExpressionUtils.call("cuid"),
+        },
+        name: {
+          name: "name",
+          type: "String",
+          unique: true,
+        },
+        posts: {
+          name: "posts",
+          type: "Post",
+          array: true,
+          relation: { opposite: "category" },
+        },
+      },
+      idFields: ["id"],
+      uniqueFields: {
+        id: { type: "String" },
+        name: { type: "String" },
+      },
+    },
+    Foo: {
+      name: "Foo",
+      fields: {
+        id: {
+          name: "id",
+          type: "String",
+          id: true,
+          default: ExpressionUtils.call("cuid"),
+        },
+        type: {
+          name: "type",
+          type: "String",
+          isDiscriminator: true,
+        },
+      },
+      idFields: ["id"],
+      uniqueFields: {
+        id: { type: "String" },
+      },
+      isDelegate: true,
+      subModels: ["Bar"],
+    },
+    Bar: {
+      name: "Bar",
+      baseModel: "Foo",
+      fields: {
+        id: {
+          name: "id",
+          type: "String",
+          id: true,
+          default: ExpressionUtils.call("cuid"),
+        },
+        type: {
+          name: "type",
+          type: "String",
+          originModel: "Foo",
+          isDiscriminator: true,
+        },
+        title: {
+          name: "title",
+          type: "String",
+        },
+      },
+      idFields: ["id"],
+      uniqueFields: {
+        id: { type: "String" },
+      },
+    },
+  } as const
+
+  authType = "User" as const
+  plugins = {}
+}
+
+export const schema = new SchemaType()
