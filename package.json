@@ -50,9 +50,7 @@
     "test:typecheck": "tsc --noEmit --project test/tsconfig.json",
     "test:all": "pnpm test && pnpm test:typecheck",
     "prepublishOnly": "pnpm run build",
-    "prepack": "pnpm run build",
-    "changelogen": "changelogen",
-    "release": "pnpm test:all && changelogen --release && pnpm publish && git push --follow-tags"
+    "prepack": "pnpm run build"
   },
   "devDependencies": {
     "@pinia/colada": "^0.21.1",
@@ -61,7 +59,6 @@
     "@zenstackhq/common-helpers": "3.2.1",
     "@zenstackhq/orm": "3.2.1",
     "@zenstackhq/schema": "3.2.1",
-    "changelogen": "^0.6.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
