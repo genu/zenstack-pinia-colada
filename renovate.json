@@ -11,8 +11,8 @@
     {
       "description": "Group all ZenStack packages together",
       "groupName": "zenstack",
-      "matchPackagePatterns": ["^@zenstackhq/"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@zenstackhq//"]
     },
     {
       "description": "Group Vue ecosystem packages",
@@ -22,7 +22,7 @@
     {
       "description": "Group linting/formatting tools",
       "groupName": "linting",
-      "matchPackagePatterns": ["eslint", "prettier"]
+      "matchPackageNames": ["/eslint/", "/prettier/"]
     },
     {
       "description": "Group test infrastructure",
