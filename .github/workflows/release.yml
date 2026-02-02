@@ -20,8 +20,6 @@ jobs:
       - name: Release Please
         id: release
         uses: googleapis/release-please-action@v4
-        with:
-          release-type: node
 
   publish:
     runs-on: ubuntu-latest
