@@ -34,3 +34,6 @@ pnpm-debug.log*
 
 # Testing
 .vitest
+
+# Claude Code
+.claude/*.local.json
