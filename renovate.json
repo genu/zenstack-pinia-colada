@@ -1,6 +1,39 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommitTypeAll(chore)",
+    ":label(dependencies)",
+    ":disablePeerDependencies"
+  ],
+  "packageRules": [
+    {
+      "description": "Group all ZenStack packages together",
+      "groupName": "zenstack",
+      "matchPackagePatterns": ["^@zenstackhq/"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group Vue ecosystem packages",
+      "groupName": "vue ecosystem",
+      "matchPackageNames": ["vue", "pinia", "@pinia/colada"]
+    },
+    {
+      "description": "Group linting/formatting tools",
+      "groupName": "linting",
+      "matchPackagePatterns": ["eslint", "prettier"]
+    },
+    {
+      "description": "Group test infrastructure",
+      "groupName": "testing",
+      "matchPackageNames": ["vitest", "happy-dom"]
+    },
+    {
+      "description": "Automerge patch updates for dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    }
   ]
 }

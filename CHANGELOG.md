@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.14...v0.2.0) (2026-02-02)
+
+
+### Features
+
+* add procedure hooks and `exists` api ([9342cb9](https://github.com/genu/zenstack-pinia-colada/commit/9342cb9c0b92fbea15c471170630bef7d270fbba))
+
+
+### Bug Fixes
+
+* refactor mutation handling in useModelQueries to improve code reusability and maintainability ([253a87e](https://github.com/genu/zenstack-pinia-colada/commit/253a87e1ceff60ae93ce674bea9cc585287cb6e2))
+* refactor useInternalMutation to streamline mutation options handling and improve reactivity ([38386f0](https://github.com/genu/zenstack-pinia-colada/commit/38386f064ba91c302fe2697aa081b57d69545171))
+* update dependencies to ZenStack v3.1.1 and Pinia Colada v0.21.0 ([c5ceb0c](https://github.com/genu/zenstack-pinia-colada/commit/c5ceb0c2569c95c3161575b53c5cf111e036de0d))
+
 ## v0.1.14
 
 [compare changes](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.13...v0.1.14)
