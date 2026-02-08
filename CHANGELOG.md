@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.1](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.0...v0.2.1) (2026-02-08)
+
+
+### Dependencies
+
+* **deps:** update actions/checkout action to v6 ([#15](https://github.com/genu/zenstack-pinia-colada/issues/15)) ([58e3345](https://github.com/genu/zenstack-pinia-colada/commit/58e3345831ef315ca0a3a3deaf494b3f51fa9442))
+* **deps:** update actions/setup-node action to v6 ([#16](https://github.com/genu/zenstack-pinia-colada/issues/16)) ([0e6667b](https://github.com/genu/zenstack-pinia-colada/commit/0e6667b06ea5e67232a376bd14525f09dfdb5f1b))
+* **deps:** update dependency @pinia/colada to v0.21.3 ([#22](https://github.com/genu/zenstack-pinia-colada/issues/22)) ([5f7a6de](https://github.com/genu/zenstack-pinia-colada/commit/5f7a6de488639a92e72a607190a9bc4d594bd3c8))
+* **deps:** update dependency @types/node to v25.2.1 ([#21](https://github.com/genu/zenstack-pinia-colada/issues/21)) ([1f1f07b](https://github.com/genu/zenstack-pinia-colada/commit/1f1f07b43e1f16334dd328eace925b6e8231aad3))
+* **deps:** update dependency @types/node to v25.2.2 ([#26](https://github.com/genu/zenstack-pinia-colada/issues/26)) ([5261184](https://github.com/genu/zenstack-pinia-colada/commit/52611844e05e0f5b5c4562c2a233053510eb83eb))
+* **deps:** update dependency eslint to v10 ([#24](https://github.com/genu/zenstack-pinia-colada/issues/24)) ([853d8e6](https://github.com/genu/zenstack-pinia-colada/commit/853d8e66999587379680162158eb206b9dfd2075))
+* **deps:** update dependency happy-dom to v20.5.0 ([#18](https://github.com/genu/zenstack-pinia-colada/issues/18)) ([d19b961](https://github.com/genu/zenstack-pinia-colada/commit/d19b96196ae35325f868bf5b3979b4a52244a496))
+* **deps:** update dependency tsdown to ^0.20.0 ([#12](https://github.com/genu/zenstack-pinia-colada/issues/12)) ([06bc4db](https://github.com/genu/zenstack-pinia-colada/commit/06bc4dbeff8b72bdbb091f8b98fc4444f913690c))
+* **deps:** update dependency tsdown to v0.20.2 ([#19](https://github.com/genu/zenstack-pinia-colada/issues/19)) ([18330f0](https://github.com/genu/zenstack-pinia-colada/commit/18330f0729c9939aaa393f6af329de5fc71f5d0d))
+* **deps:** update dependency tsdown to v0.20.3 ([#20](https://github.com/genu/zenstack-pinia-colada/issues/20)) ([80985d9](https://github.com/genu/zenstack-pinia-colada/commit/80985d9ee3445596f19b7f3ab34260f8938dd7fd))
+* **deps:** update pnpm to v10.28.2 ([#13](https://github.com/genu/zenstack-pinia-colada/issues/13)) ([1fcf0a8](https://github.com/genu/zenstack-pinia-colada/commit/1fcf0a8d2b51de0d4bad5fe5c43f6cc6cdb432e9))
+* **deps:** update pnpm to v10.29.1 ([#25](https://github.com/genu/zenstack-pinia-colada/issues/25)) ([7ef0e75](https://github.com/genu/zenstack-pinia-colada/commit/7ef0e7585f8c39e8850ae87f2942b09ad4364dc8))
+* **deps:** update testing ([#14](https://github.com/genu/zenstack-pinia-colada/issues/14)) ([cb52a94](https://github.com/genu/zenstack-pinia-colada/commit/cb52a944d4c1ebc425f54fe94aeb3e370a8b495f))
+* **deps:** update zenstack to v3.3.2 ([#11](https://github.com/genu/zenstack-pinia-colada/issues/11)) ([9dedba9](https://github.com/genu/zenstack-pinia-colada/commit/9dedba918c4c66d79fd4ffea877ef770c446ce93))
+* **deps:** update zenstack to v3.3.3 ([#23](https://github.com/genu/zenstack-pinia-colada/issues/23)) ([d3fbb74](https://github.com/genu/zenstack-pinia-colada/commit/d3fbb744e1d15a7b387e2475725d54267950d604))
+* Derepecate changelogen in favor of `release-please` ([e560f9c](https://github.com/genu/zenstack-pinia-colada/commit/e560f9c07aa1a59ce812626e171f627314eac3a7))
+
 ## [0.2.0](https://github.com/genu/zenstack-pinia-colada/compare/v0.1.14...v0.2.0) (2026-02-02)
 
 
