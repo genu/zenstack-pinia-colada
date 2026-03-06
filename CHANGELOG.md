@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.1...v0.2.2) (2026-03-06)
+
+
+### Features
+
+* add manual release workflow with prepare-release-action ([#47](https://github.com/genu/zenstack-pinia-colada/issues/47)) ([a964559](https://github.com/genu/zenstack-pinia-colada/commit/a964559281bcf009f78181af90e1438e975d0c1e))
+
+
+### Bug Fixes
+
+* **ci:** run tests on release-please PRs ([#50](https://github.com/genu/zenstack-pinia-colada/issues/50)) ([c58bb12](https://github.com/genu/zenstack-pinia-colada/commit/c58bb12e9118eb55a1c1246b5a62c73cea337c03))
+
 ## [0.2.1](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.0...v0.2.1) (2026-02-08)
 
 
