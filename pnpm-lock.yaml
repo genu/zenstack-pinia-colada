@@ -15,17 +15,17 @@ importers:
         specifier: 25.3.5
         version: 25.3.5
       '@zenstackhq/client-helpers':
-        specifier: 3.4.4
-        version: 3.4.4
+        specifier: 3.4.5
+        version: 3.4.5
       '@zenstackhq/common-helpers':
-        specifier: 3.4.4
-        version: 3.4.4
+        specifier: 3.4.5
+        version: 3.4.5
       '@zenstackhq/orm':
-        specifier: 3.4.4
-        version: 3.4.4(zod@4.1.12)
+        specifier: 3.4.5
+        version: 3.4.5(zod@4.1.12)
       '@zenstackhq/schema':
-        specifier: 3.4.4
-        version: 3.4.4
+        specifier: 3.4.5
+        version: 3.4.5
       eslint:
         specifier: 10.0.3
         version: 10.0.3(jiti@2.6.1)
@@ -683,14 +683,14 @@ packages:
   '@vue/shared@3.5.29':
     resolution: {integrity: sha512-w7SR0A5zyRByL9XUkCfdLs7t9XOHUyJ67qPGQjOou3p6GvBeBW+AVjUUmlxtZ4PIYaRvE+1LmK44O4uajlZwcg==}
 
-  '@zenstackhq/client-helpers@3.4.4':
-    resolution: {integrity: sha512-anO1Z7oTMoQenwakpHqmQiQRpeZtdYGm7H+jnj51MiOzLlQ4fJ2+uBInucEHptUmCS/4q9/cSpqw7/8N8pQvlg==}
+  '@zenstackhq/client-helpers@3.4.5':
+    resolution: {integrity: sha512-b8d2csVcvvuY0Z1mVpB4wQwNNUpl+IK+DMJzac3Hm3snT6YAVfbCp4Em/Y/igWg8Pt4/I9P6cWGLaZq6ZLYzVA==}
 
-  '@zenstackhq/common-helpers@3.4.4':
-    resolution: {integrity: sha512-HS/B0uhyhzFoDamM/yQ4e7Zi/P/bYSTEa81YfIZ1b4TQB7vxNjO+CslpV/17XxpuzZl/758FfisJylztd+Jq4w==}
+  '@zenstackhq/common-helpers@3.4.5':
+    resolution: {integrity: sha512-C6ned0rb5zwKxRZKdcxdxvZy+2cWAAF7gBYFrRjXSRySMBPJ7WS60+wUTQP6EyQG6vd8QCbU6o8t7tUdxxoZmQ==}
 
-  '@zenstackhq/orm@3.4.4':
-    resolution: {integrity: sha512-0r0HDj5ZZK5TaXRuFGSmRKMoHhpHBiDu0qWSFY+ZyDtEjjOXnKsWSlReGsyt4kX4IqKsD1jH0cFVeMjONVseWA==}
+  '@zenstackhq/orm@3.4.5':
+    resolution: {integrity: sha512-b/GDWqpUvunXl9CEA/YVVkdZ94lnGrxhKdJF42A3FlBisqrDs1IekEURW8dEcjgH/ViZh2N/4+hCUw4RplHx7g==}
     peerDependencies:
       better-sqlite3: ^12.5.0
       mysql2: ^3.16.1
@@ -707,11 +707,11 @@ packages:
       sql.js:
         optional: true
 
-  '@zenstackhq/schema@3.4.4':
-    resolution: {integrity: sha512-VOnTaakDs5xgm4639kZLersRKyMay7h1vPvRxxmYDRU9faTvGgOgXKLlSrNdzt0pA12AM/4E2XXUBo+zNzaMeg==}
+  '@zenstackhq/schema@3.4.5':
+    resolution: {integrity: sha512-/rHBaIK9wWauPoHHyUFhSlFYqseAUz/UQoKa0Kd6aJzjNVolbgWfXoL/Y5/U8nmWO7h+GH+jYwAsyo5QCUS3LQ==}
 
-  '@zenstackhq/zod@3.4.4':
-    resolution: {integrity: sha512-1ARS5WU3cmVvDq7VRVVawAvFXdZgKQHwf9KUNkVlvabIaVf79on/tNswKaRU6qSnfmbWG9Ea7rUHFVP2Fva7Iw==}
+  '@zenstackhq/zod@3.4.5':
+    resolution: {integrity: sha512-y6XZiUVabQyYzKuAS8JBtKnjveoCtsl4NoH5hL9HAfOZBiQ3bjeVEMG5tC+eBpswYISnsbrroo+X+/O8or9Udg==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -1962,21 +1962,21 @@ snapshots:
 
   '@vue/shared@3.5.29': {}
 
-  '@zenstackhq/client-helpers@3.4.4':
+  '@zenstackhq/client-helpers@3.4.5':
     dependencies:
-      '@zenstackhq/common-helpers': 3.4.4
-      '@zenstackhq/schema': 3.4.4
+      '@zenstackhq/common-helpers': 3.4.5
+      '@zenstackhq/schema': 3.4.5
       decimal.js: 10.6.0
       superjson: 2.2.6
 
-  '@zenstackhq/common-helpers@3.4.4': {}
+  '@zenstackhq/common-helpers@3.4.5': {}
 
-  '@zenstackhq/orm@3.4.4(zod@4.1.12)':
+  '@zenstackhq/orm@3.4.5(zod@4.1.12)':
     dependencies:
       '@paralleldrive/cuid2': 2.3.1
-      '@zenstackhq/common-helpers': 3.4.4
-      '@zenstackhq/schema': 3.4.4
-      '@zenstackhq/zod': 3.4.4(zod@4.1.12)
+      '@zenstackhq/common-helpers': 3.4.5
+      '@zenstackhq/schema': 3.4.5
+      '@zenstackhq/zod': 3.4.5(zod@4.1.12)
       cuid: 3.0.0
       decimal.js: 10.6.0
       json-stable-stringify: 1.3.0
@@ -1990,13 +1990,13 @@ snapshots:
       zod: 4.1.12
       zod-validation-error: 4.0.2(zod@4.1.12)
 
-  '@zenstackhq/schema@3.4.4':
+  '@zenstackhq/schema@3.4.5':
     dependencies:
       decimal.js: 10.6.0
 
-  '@zenstackhq/zod@3.4.4(zod@4.1.12)':
+  '@zenstackhq/zod@3.4.5(zod@4.1.12)':
     dependencies:
-      '@zenstackhq/schema': 3.4.4
+      '@zenstackhq/schema': 3.4.5
       decimal.js: 10.6.0
       zod: 4.1.12
 
