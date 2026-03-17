@@ -71,7 +71,6 @@ import type {
 } from "./common/types"
 
 export type { FetchFn } from "@zenstackhq/client-helpers/fetch"
-export type { InferExtResult, InferOptions, InferSchema } from "@zenstackhq/client-helpers"
 export type { SchemaDef } from "@zenstackhq/schema"
 
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
