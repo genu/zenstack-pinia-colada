@@ -52,6 +52,9 @@ import {
   createInvalidator,
   createOptimisticUpdater,
   DEFAULT_QUERY_ENDPOINT,
+  type InferExtResult,
+  type InferOptions,
+  type InferSchema,
   type InvalidationPredicate,
 } from "@zenstackhq/client-helpers"
 import { fetcher, makeUrl, marshal } from "@zenstackhq/client-helpers/fetch"
@@ -68,19 +71,8 @@ import type {
 } from "./common/types"
 
 export type { FetchFn } from "@zenstackhq/client-helpers/fetch"
+export type { InferExtResult, InferOptions, InferSchema } from "@zenstackhq/client-helpers"
 export type { SchemaDef } from "@zenstackhq/schema"
-
-/**
- * Infers the schema definition from a client contract type, or passes through a raw SchemaDef.
- */
-export type InferSchema<T> = T extends { $schema: infer S extends SchemaDef } ? S : T extends SchemaDef ? T : never
-
-/**
- * Extracts the ExtResult type from a client contract, or defaults to `{}`.
- */
-export type InferExtResult<T> = T extends ClientContract<infer S extends SchemaDef, any, any, any, infer E extends ExtResultBase<S>>
-  ? E
-  : {}
 
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
 
@@ -292,13 +284,10 @@ export type ModelQueryHooks<
  */
 export function useClientQueries<
   Client extends SchemaDef | ClientContract<any, any, any, any, any>,
-  Schema extends SchemaDef = InferSchema<Client>,
-  Options extends QueryOptions<Schema> = QueryOptions<Schema>,
-  ExtResult extends ExtResultBase<Schema> = InferExtResult<Client> extends ExtResultBase<Schema> ? InferExtResult<Client> : {},
 >(
-  schema: Schema,
+  schema: InferSchema<Client>,
   options?: MaybeRefOrGetter<QueryContext>,
-): ClientHooks<Schema, Options, ExtResult> {
+): ClientHooks<InferSchema<Client>, InferOptions<Client, InferSchema<Client>>, InferExtResult<Client> extends ExtResultBase<InferSchema<Client>> ? InferExtResult<Client> : {}> {
   const merge = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
     return computed(() => {
       const rootVal = toValue(rootOpt) ?? {}
@@ -313,14 +302,14 @@ export function useClientQueries<
 
   const result = Object.keys(schema.models).reduce(
     (acc, model) => {
-      ;(acc as any)[lowerCaseFirst(model)] = useModelQueries<Schema, GetModels<Schema>, Options, ExtResult>(
-        schema,
-        model as GetModels<Schema>,
+      ;(acc as any)[lowerCaseFirst(model)] = useModelQueries(
+        schema as any,
+        model as any,
         options,
       )
       return acc
     },
-    {} as ClientHooks<Schema, Options, ExtResult>,
+    {} as any,
   )
 
   const procedures = (schema as any).procedures as Record<string, { mutation?: boolean }> | undefined

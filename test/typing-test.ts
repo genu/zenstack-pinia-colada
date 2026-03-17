@@ -265,14 +265,16 @@ check(client.user.useFindMany().data.value?.[0]?.fullName)
 // Slicing - Model filtering
 // ============================================================================
 
-const slicedModelsClient = useClientQueries<
-  typeof schema,
+type SlicedModelsDb = ClientContract<
+  SchemaType,
   {
     slicing: {
       includedModels: ["User", "Post"]
     }
   }
->(schema)
+>
+
+const slicedModelsClient = useClientQueries<SlicedModelsDb>(schema)
 
 check(slicedModelsClient.user.useFindMany())
 check(slicedModelsClient.post.useFindMany())
@@ -283,8 +285,8 @@ check(slicedModelsClient.category)
 // Slicing - Operation filtering
 // ============================================================================
 
-const slicedOpsClient = useClientQueries<
-  typeof schema,
+type SlicedOpsDb = ClientContract<
+  SchemaType,
   {
     slicing: {
       models: {
@@ -294,7 +296,9 @@ const slicedOpsClient = useClientQueries<
       }
     }
   }
->(schema)
+>
+
+const slicedOpsClient = useClientQueries<SlicedOpsDb>(schema)
 
 check(slicedOpsClient.user.useFindUnique({ where: { id: "1" } }))
 check(slicedOpsClient.user.useFindMany())
@@ -306,7 +310,7 @@ check(slicedOpsClient.user.useFindFirst())
 // Slicing - Procedure filtering
 // ============================================================================
 
-const slicedProcsClient = useClientQueries<
+type SlicedProcsDb = ClientContract<
   typeof proceduresSchema,
   {
     slicing: {
@@ -314,7 +318,9 @@ const slicedProcsClient = useClientQueries<
       excludedProcedures: ["sum"]
     }
   }
->(proceduresSchema)
+>
+
+const slicedProcsClient = useClientQueries<SlicedProcsDb>(proceduresSchema)
 
 check(slicedProcsClient.$procs.greet.useQuery())
 // @ts-expect-error sum excluded from sliced procedures
