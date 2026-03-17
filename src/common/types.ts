@@ -1,6 +1,12 @@
 import type { Logger, OptimisticDataProvider } from "@zenstackhq/client-helpers"
 import type { FetchFn } from "@zenstackhq/client-helpers/fetch"
-import type { GetProcedureNames, OperationsIneligibleForDelegateModels, ProcedureFunc } from "@zenstackhq/orm"
+import type {
+  GetProcedureNames,
+  GetSlicedOperations,
+  OperationsIneligibleForDelegateModels,
+  ProcedureFunc,
+  QueryOptions,
+} from "@zenstackhq/orm"
 import type { GetModels, IsDelegateModel, SchemaDef } from "@zenstackhq/schema"
 
 /**
@@ -57,11 +63,25 @@ type HooksOperationsIneligibleForDelegateModels = OperationsIneligibleForDelegat
   ? `use${Capitalize<OperationsIneligibleForDelegateModels>}`
   : never
 
+type Modifiers = "" | "Infinite"
+
 /**
- * Trim operations that are ineligible for delegate models from the given model operations type.
+ * Trim CRUD operation hooks to include only eligible operations based on slicing options.
  */
-export type TrimDelegateModelOperations<Schema extends SchemaDef, Model extends GetModels<Schema>, T extends Record<string, unknown>> =
-  IsDelegateModel<Schema, Model> extends true ? Omit<T, HooksOperationsIneligibleForDelegateModels> : T
+export type TrimSlicedOperations<
+  Schema extends SchemaDef,
+  Model extends GetModels<Schema>,
+  Options extends QueryOptions<Schema>,
+  T extends Record<string, unknown>,
+> = {
+  [Key in keyof T as Key extends `use${Modifiers}${Capitalize<GetSlicedOperations<Schema, Model, Options>>}`
+    ? IsDelegateModel<Schema, Model> extends true
+      ? Key extends HooksOperationsIneligibleForDelegateModels
+        ? never
+        : Key
+      : Key
+    : never]: T[Key]
+}
 
 type WithOptimisticFlag<T> = T extends object
   ? T & {

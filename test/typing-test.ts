@@ -260,3 +260,62 @@ extClient.user
 // Plain client (no ExtResult) should NOT have computed fields
 // @ts-expect-error fullName doesn't exist without ExtResult
 check(client.user.useFindMany().data.value?.[0]?.fullName)
+
+// ============================================================================
+// Slicing - Model filtering
+// ============================================================================
+
+const slicedModelsClient = useClientQueries<
+  typeof schema,
+  {
+    slicing: {
+      includedModels: ["User", "Post"]
+    }
+  }
+>(schema)
+
+check(slicedModelsClient.user.useFindMany())
+check(slicedModelsClient.post.useFindMany())
+// @ts-expect-error category not included in sliced models
+check(slicedModelsClient.category)
+
+// ============================================================================
+// Slicing - Operation filtering
+// ============================================================================
+
+const slicedOpsClient = useClientQueries<
+  typeof schema,
+  {
+    slicing: {
+      models: {
+        user: {
+          includedOperations: ["findUnique", "findMany", "update"]
+        }
+      }
+    }
+  }
+>(schema)
+
+check(slicedOpsClient.user.useFindUnique({ where: { id: "1" } }))
+check(slicedOpsClient.user.useFindMany())
+check(slicedOpsClient.user.useUpdate())
+// @ts-expect-error findFirst not included in sliced operations
+check(slicedOpsClient.user.useFindFirst())
+
+// ============================================================================
+// Slicing - Procedure filtering
+// ============================================================================
+
+const slicedProcsClient = useClientQueries<
+  typeof proceduresSchema,
+  {
+    slicing: {
+      includedProcedures: ["greet", "sum"]
+      excludedProcedures: ["sum"]
+    }
+  }
+>(proceduresSchema)
+
+check(slicedProcsClient.$procs.greet.useQuery())
+// @ts-expect-error sum excluded from sliced procedures
+check(slicedProcsClient.$procs.sum)

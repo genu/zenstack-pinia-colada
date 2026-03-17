@@ -18,6 +18,8 @@ import type {
   FindUniqueArgs,
   GetProcedure,
   GetProcedureNames,
+  GetSlicedModels,
+  GetSlicedProcedures,
   GroupByArgs,
   GroupByResult,
   ProcedureEnvelope,
@@ -61,7 +63,7 @@ import type {
   ExtraQueryOptions,
   ProcedureReturn,
   QueryContext,
-  TrimDelegateModelOperations,
+  TrimSlicedOperations,
   WithOptimistic,
 } from "./common/types"
 
@@ -147,8 +149,8 @@ type ProcedureHookFn<
   ? (args?: MaybeRefOrGetter<Input>, options?: MaybeRefOrGetter<Options>) => Result
   : (args: MaybeRefOrGetter<Input>, options?: MaybeRefOrGetter<Options>) => Result
 
-type ProcedureHookGroup<Schema extends SchemaDef> = {
-  [Name in GetProcedureNames<Schema>]: GetProcedure<Schema, Name> extends { mutation: true }
+type ProcedureHookGroup<Schema extends SchemaDef, Options extends QueryOptions<Schema>> = {
+  [Name in GetSlicedProcedures<Schema, Options>]: GetProcedure<Schema, Name> extends { mutation: true }
     ? {
         useMutation(
           options?: MaybeRefOrGetter<Omit<UnwrapRef<UseMutationOptions<ProcedureReturn<Schema, Name>, ProcedureEnvelope<Schema, Name>>>, "mutation"> & QueryContext>,
@@ -164,22 +166,23 @@ type ProcedureHookGroup<Schema extends SchemaDef> = {
       }
 }
 
-export type ProcedureHooks<Schema extends SchemaDef> = Schema extends { procedures: Record<string, any> }
-  ? {
-      /**
-       * Custom procedures.
-       */
-      $procs: ProcedureHookGroup<Schema>
-    }
-  : {}
+export type ProcedureHooks<Schema extends SchemaDef, Options extends QueryOptions<Schema>> =
+  Schema["procedures"] extends Record<string, any>
+    ? {
+        /**
+         * Custom procedures.
+         */
+        $procs: ProcedureHookGroup<Schema, Options>
+      }
+    : Record<never, never>
 
 export type ClientHooks<
   Schema extends SchemaDef,
   Options extends QueryOptions<Schema> = QueryOptions<Schema>,
   ExtResult extends ExtResultBase<Schema> = {},
 > = {
-  [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options, ExtResult>
-} & ProcedureHooks<Schema>
+  [Model in GetSlicedModels<Schema, Options> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options, ExtResult>
+} & ProcedureHooks<Schema, Options>
 
 // Note that we can potentially use TypeScript's mapped type to directly map from ORM contract, but that seems
 // to significantly slow down tsc performance ...
@@ -188,9 +191,10 @@ export type ModelQueryHooks<
   Model extends GetModels<Schema>,
   Options extends QueryOptions<Schema> = QueryOptions<Schema>,
   ExtResult extends ExtResultBase<Schema> = {},
-> = TrimDelegateModelOperations<
+> = TrimSlicedOperations<
   Schema,
   Model,
+  Options,
   {
     useFindUnique<T extends FindUniqueArgs<Schema, Model, Options, {}, ExtResult>>(
       args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model, Options, {}, ExtResult>>>,
@@ -202,8 +206,8 @@ export type ModelQueryHooks<
       options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>>,
     ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>
 
-    useExists<T extends ExistsArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<Subset<T, ExistsArgs<Schema, Model>>>,
+    useExists<T extends ExistsArgs<Schema, Model, Options>>(
+      args?: MaybeRefOrGetter<Subset<T, ExistsArgs<Schema, Model, Options>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<boolean>>,
     ): ModelQueryResult<boolean>
 
@@ -233,7 +237,7 @@ export type ModelQueryHooks<
       options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
     ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
-    useUpdateMany<T extends UpdateManyArgs<Schema, Model>>(
+    useUpdateMany<T extends UpdateManyArgs<Schema, Model, Options>>(
       options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
     ): ModelMutationResult<BatchResult, T>
 
@@ -249,22 +253,22 @@ export type ModelQueryHooks<
       options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
     ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
-    useDeleteMany<T extends DeleteManyArgs<Schema, Model>>(
+    useDeleteMany<T extends DeleteManyArgs<Schema, Model, Options>>(
       options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
     ): ModelMutationResult<BatchResult, T>
 
-    useCount<T extends CountArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<Subset<T, CountArgs<Schema, Model>>>,
+    useCount<T extends CountArgs<Schema, Model, Options>>(
+      args?: MaybeRefOrGetter<Subset<T, CountArgs<Schema, Model, Options>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<CountResult<Schema, Model, T>>>,
     ): ModelQueryResult<CountResult<Schema, Model, T>>
 
-    useAggregate<T extends AggregateArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<Subset<T, AggregateArgs<Schema, Model>>>,
+    useAggregate<T extends AggregateArgs<Schema, Model, Options>>(
+      args: MaybeRefOrGetter<Subset<T, AggregateArgs<Schema, Model, Options>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<AggregateResult<Schema, Model, T>>>,
     ): ModelQueryResult<AggregateResult<Schema, Model, T>>
 
-    useGroupBy<T extends GroupByArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<Subset<T, GroupByArgs<Schema, Model>>>,
+    useGroupBy<T extends GroupByArgs<Schema, Model, Options>>(
+      args: MaybeRefOrGetter<Subset<T, GroupByArgs<Schema, Model, Options>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<GroupByResult<Schema, Model, T>>>,
     ): ModelQueryResult<GroupByResult<Schema, Model, T>>
   }
