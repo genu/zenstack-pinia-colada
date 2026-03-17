@@ -3,8 +3,9 @@
 // These tests verify TypeScript types work correctly using @ts-expect-error annotations //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+import type { ClientContract } from "@zenstackhq/orm"
 import { useClientQueries } from "../src/index"
-import { schema } from "./schemas/basic/schema-lite"
+import { schema, type SchemaType } from "./schemas/basic/schema-lite"
 import { schema as proceduresSchema } from "./schemas/procedures/schema-lite"
 
 const client = useClientQueries(schema)
@@ -216,3 +217,46 @@ proceduresClient.$procs.sum
 type SumHooks = (typeof proceduresClient.$procs)["sum"]
 // @ts-expect-error useQuery should not be a property of mutation procedures
 type SumUseQuery = SumHooks["useQuery"]
+
+// ============================================================================
+// Computed fields via ClientContract type (ExtResult)
+// ============================================================================
+
+// Simulate a server client type with a computed "fullName" field on User
+type DbType = ClientContract<
+  SchemaType,
+  any,
+  any,
+  any,
+  {
+    user: {
+      fullName: {
+        needs: { email: true; name: true }
+        compute: (user: { email: string; name: string | null }) => string
+      }
+    }
+  }
+>
+
+const extClient = useClientQueries<DbType>(schema)
+
+// Computed field is present in default results
+check(extClient.user.useFindMany().data.value?.[0]?.fullName.toUpperCase())
+check(extClient.user.useFindFirst().data.value?.fullName.toUpperCase())
+check(extClient.user.useFindUnique({ where: { id: "1" } }).data.value?.fullName.toUpperCase())
+
+// Computed field is selectable
+check(extClient.user.useFindFirst({ select: { fullName: true } }).data.value?.fullName)
+
+// @ts-expect-error non-selected field excluded when selecting computed field only
+check(extClient.user.useFindFirst({ select: { fullName: true } }).data.value?.email)
+
+// Computed field in mutation results
+extClient.user
+  .useCreate()
+  .mutateAsync({ data: { email: "test@example.com" } })
+  .then((d) => check(d.fullName))
+
+// Plain client (no ExtResult) should NOT have computed fields
+// @ts-expect-error fullName doesn't exist without ExtResult
+check(client.user.useFindMany().data.value?.[0]?.fullName)

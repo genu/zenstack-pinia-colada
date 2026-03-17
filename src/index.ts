@@ -3,6 +3,7 @@ import type {
   AggregateArgs,
   AggregateResult,
   BatchResult,
+  ClientContract,
   CountArgs,
   CountResult,
   CreateArgs,
@@ -11,6 +12,7 @@ import type {
   DeleteArgs,
   DeleteManyArgs,
   ExistsArgs,
+  ExtResultBase,
   FindFirstArgs,
   FindManyArgs,
   FindUniqueArgs,
@@ -65,6 +67,19 @@ import type {
 
 export type { FetchFn } from "@zenstackhq/client-helpers/fetch"
 export type { SchemaDef } from "@zenstackhq/schema"
+
+/**
+ * Infers the schema definition from a client contract type, or passes through a raw SchemaDef.
+ */
+export type InferSchema<T> = T extends { $schema: infer S extends SchemaDef } ? S : T extends SchemaDef ? T : never
+
+/**
+ * Extracts the ExtResult type from a client contract, or defaults to `{}`.
+ */
+export type InferExtResult<T> = T extends ClientContract<infer S extends SchemaDef, any, any, any, infer E extends ExtResultBase<S>>
+  ? E
+  : {}
+
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
 
 /**
@@ -114,11 +129,12 @@ export type ModelMutationModelResult<
   TArgs,
   Array extends boolean = false,
   Options extends QueryOptions<Schema> = QueryOptions<Schema>,
-> = Omit<ModelMutationResult<SimplifiedResult<Schema, Model, TArgs, QueryOptions<Schema>, false, Array>, TArgs>, "mutateAsync"> & {
+  ExtResult extends ExtResultBase<Schema> = {},
+> = Omit<ModelMutationResult<SimplifiedResult<Schema, Model, TArgs, QueryOptions<Schema>, false, Array, ExtResult>, TArgs>, "mutateAsync"> & {
   mutateAsync<T extends TArgs>(
     args: T,
-    options?: ModelMutationOptions<SimplifiedResult<Schema, Model, T, Options, false, Array>, T>,
-  ): Promise<SimplifiedResult<Schema, Model, T, Options, false, Array>>
+    options?: ModelMutationOptions<SimplifiedResult<Schema, Model, T, Options, false, Array, ExtResult>, T>,
+  ): Promise<SimplifiedResult<Schema, Model, T, Options, false, Array, ExtResult>>
 }
 
 type ProcedureHookFn<
@@ -157,8 +173,12 @@ export type ProcedureHooks<Schema extends SchemaDef> = Schema extends { procedur
     }
   : {}
 
-export type ClientHooks<Schema extends SchemaDef, Options extends QueryOptions<Schema> = QueryOptions<Schema>> = {
-  [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options>
+export type ClientHooks<
+  Schema extends SchemaDef,
+  Options extends QueryOptions<Schema> = QueryOptions<Schema>,
+  ExtResult extends ExtResultBase<Schema> = {},
+> = {
+  [Model in GetModels<Schema> as `${Uncapitalize<Model>}`]: ModelQueryHooks<Schema, Model, Options, ExtResult>
 } & ProcedureHooks<Schema>
 
 // Note that we can potentially use TypeScript's mapped type to directly map from ORM contract, but that seems
@@ -167,66 +187,67 @@ export type ModelQueryHooks<
   Schema extends SchemaDef,
   Model extends GetModels<Schema>,
   Options extends QueryOptions<Schema> = QueryOptions<Schema>,
+  ExtResult extends ExtResultBase<Schema> = {},
 > = TrimDelegateModelOperations<
   Schema,
   Model,
   {
-    useFindUnique<T extends FindUniqueArgs<Schema, Model>>(
-      args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model>>>,
-      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options> | null>>,
-    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options> | null>
+    useFindUnique<T extends FindUniqueArgs<Schema, Model, Options, {}, ExtResult>>(
+      args: MaybeRefOrGetter<SelectSubset<T, FindUniqueArgs<Schema, Model, Options, {}, ExtResult>>>,
+      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>>,
+    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>
 
-    useFindFirst<T extends FindFirstArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model>>>,
-      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options> | null>>,
-    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options> | null>
+    useFindFirst<T extends FindFirstArgs<Schema, Model, Options, {}, ExtResult>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindFirstArgs<Schema, Model, Options, {}, ExtResult>>>,
+      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>>,
+    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult> | null>
 
     useExists<T extends ExistsArgs<Schema, Model>>(
       args?: MaybeRefOrGetter<Subset<T, ExistsArgs<Schema, Model>>>,
       options?: MaybeRefOrGetter<ModelQueryOptions<boolean>>,
     ): ModelQueryResult<boolean>
 
-    useFindMany<T extends FindManyArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options>[]>>,
-    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options>[]>
+    useFindMany<T extends FindManyArgs<Schema, Model, Options, {}, ExtResult>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model, Options, {}, ExtResult>>>,
+      options?: MaybeRefOrGetter<ModelQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[]>>,
+    ): ModelQueryResult<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[]>
 
-    useInfiniteFindMany<T extends FindManyArgs<Schema, Model>>(
-      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model>>>,
-      options?: MaybeRefOrGetter<ModelInfiniteQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options>[]>>,
-    ): ModelInfiniteQueryResult<SimplifiedPlainResult<Schema, Model, T, Options>[]>
+    useInfiniteFindMany<T extends FindManyArgs<Schema, Model, Options, {}, ExtResult>>(
+      args?: MaybeRefOrGetter<SelectSubset<T, FindManyArgs<Schema, Model, Options, {}, ExtResult>>>,
+      options?: MaybeRefOrGetter<ModelInfiniteQueryOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[]>>,
+    ): ModelInfiniteQueryResult<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[]>
 
-    useCreate<T extends CreateArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
-    ): ModelMutationModelResult<Schema, Model, T, false, Options>
+    useCreate<T extends CreateArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
+    ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
     useCreateMany<T extends CreateManyArgs<Schema, Model>>(
       options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
     ): ModelMutationResult<BatchResult, T>
 
-    useCreateManyAndReturn<T extends CreateManyAndReturnArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>[], T>>,
-    ): ModelMutationModelResult<Schema, Model, T, true, Options>
+    useCreateManyAndReturn<T extends CreateManyAndReturnArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[], T>>,
+    ): ModelMutationModelResult<Schema, Model, T, true, Options, ExtResult>
 
-    useUpdate<T extends UpdateArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
-    ): ModelMutationModelResult<Schema, Model, T, false, Options>
+    useUpdate<T extends UpdateArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
+    ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
     useUpdateMany<T extends UpdateManyArgs<Schema, Model>>(
       options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
     ): ModelMutationResult<BatchResult, T>
 
-    useUpdateManyAndReturn<T extends UpdateManyAndReturnArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>[], T>>,
-    ): ModelMutationModelResult<Schema, Model, T, true, Options>
+    useUpdateManyAndReturn<T extends UpdateManyAndReturnArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>[], T>>,
+    ): ModelMutationModelResult<Schema, Model, T, true, Options, ExtResult>
 
-    useUpsert<T extends UpsertArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
-    ): ModelMutationModelResult<Schema, Model, T, false, Options>
+    useUpsert<T extends UpsertArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
+    ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
-    useDelete<T extends DeleteArgs<Schema, Model>>(
-      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options>, T>>,
-    ): ModelMutationModelResult<Schema, Model, T, false, Options>
+    useDelete<T extends DeleteArgs<Schema, Model, Options, {}, ExtResult>>(
+      options?: MaybeRefOrGetter<ModelMutationOptions<SimplifiedPlainResult<Schema, Model, T, Options, ExtResult>, T>>,
+    ): ModelMutationModelResult<Schema, Model, T, false, Options, ExtResult>
 
     useDeleteMany<T extends DeleteManyArgs<Schema, Model>>(
       options?: MaybeRefOrGetter<ModelMutationOptions<BatchResult, T>>,
@@ -251,11 +272,29 @@ export type ModelQueryHooks<
 
 /**
  * Gets data query hooks for all models in the schema.
+ *
+ * Accepts either a raw `SchemaDef` or a `ClientContract` type (e.g. `typeof db`) as the generic parameter.
+ * When a `ClientContract` type is provided, computed fields from plugins are reflected in the result types.
+ *
+ * @example
+ * ```typescript
+ * // Basic usage with schema
+ * const client = useClientQueries(schema)
+ *
+ * // With server client type for computed field support
+ * import type { DbType } from '~/server/db'
+ * const client = useClientQueries<DbType>(schema)
+ * ```
  */
-export function useClientQueries<Schema extends SchemaDef, Options extends QueryOptions<Schema> = QueryOptions<Schema>>(
+export function useClientQueries<
+  Client extends SchemaDef | ClientContract<any, any, any, any, any>,
+  Schema extends SchemaDef = InferSchema<Client>,
+  Options extends QueryOptions<Schema> = QueryOptions<Schema>,
+  ExtResult extends ExtResultBase<Schema> = InferExtResult<Client> extends ExtResultBase<Schema> ? InferExtResult<Client> : {},
+>(
   schema: Schema,
   options?: MaybeRefOrGetter<QueryContext>,
-): ClientHooks<Schema, Options> {
+): ClientHooks<Schema, Options, ExtResult> {
   const merge = (rootOpt: MaybeRefOrGetter<unknown> | undefined, opt: MaybeRefOrGetter<unknown> | undefined): any => {
     return computed(() => {
       const rootVal = toValue(rootOpt) ?? {}
@@ -270,14 +309,14 @@ export function useClientQueries<Schema extends SchemaDef, Options extends Query
 
   const result = Object.keys(schema.models).reduce(
     (acc, model) => {
-      ;(acc as any)[lowerCaseFirst(model)] = useModelQueries<Schema, GetModels<Schema>, Options>(
+      ;(acc as any)[lowerCaseFirst(model)] = useModelQueries<Schema, GetModels<Schema>, Options, ExtResult>(
         schema,
         model as GetModels<Schema>,
         options,
       )
       return acc
     },
-    {} as ClientHooks<Schema, Options>,
+    {} as ClientHooks<Schema, Options, ExtResult>,
   )
 
   const procedures = (schema as any).procedures as Record<string, { mutation?: boolean }> | undefined
@@ -309,11 +348,16 @@ export function useClientQueries<Schema extends SchemaDef, Options extends Query
 /**
  * Gets data query hooks for a specific model in the schema.
  */
-export function useModelQueries<Schema extends SchemaDef, Model extends GetModels<Schema>, Options extends QueryOptions<Schema>>(
+export function useModelQueries<
+  Schema extends SchemaDef,
+  Model extends GetModels<Schema>,
+  Options extends QueryOptions<Schema>,
+  ExtResult extends ExtResultBase<Schema> = {},
+>(
   schema: Schema,
   model: Model,
   rootOptions?: MaybeRefOrGetter<QueryContext>,
-): ModelQueryHooks<Schema, Model, Options> {
+): ModelQueryHooks<Schema, Model, Options, ExtResult> {
   const modelDef = Object.values(schema.models).find((m) => m.name.toLowerCase() === model.toLowerCase())
   if (!modelDef) {
     throw new Error(`Model "${model}" not found in schema`)
@@ -399,7 +443,7 @@ export function useModelQueries<Schema extends SchemaDef, Model extends GetModel
     useGroupBy: (args: any, options?: any) => {
       return useInternalQuery(schema, modelName, "groupBy", args, merge(rootOptions, options))
     },
-  } as ModelQueryHooks<Schema, Model, Options>
+  } as ModelQueryHooks<Schema, Model, Options, ExtResult>
 }
 
 export function useInternalQuery<TQueryFnData>(
