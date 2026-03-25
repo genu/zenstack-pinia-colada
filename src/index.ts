@@ -52,7 +52,6 @@ import {
   createInvalidator,
   createOptimisticUpdater,
   DEFAULT_QUERY_ENDPOINT,
-  type InferExtResult,
   type InferOptions,
   type InferSchema,
   type InvalidationPredicate,
@@ -72,6 +71,17 @@ import type {
 
 export type { FetchFn } from "@zenstackhq/client-helpers/fetch"
 export type { SchemaDef } from "@zenstackhq/schema"
+
+/**
+ * Extracts the ExtResult type from a client contract.
+ *
+ * Workaround: uses `infer` for all type params instead of `any` to preserve
+ * precise typing. The upstream `InferExtResult` from `@zenstackhq/client-helpers`
+ * uses `any` which causes TypeScript to widen the inferred type.
+ *
+ * @see https://github.com/genu/zenstack-pinia-colada/issues/71
+ */
+type InferExtResult<T> = T extends ClientContract<infer _S, infer _O, infer _Q, infer _C, infer E> ? E : {}
 
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
 

@@ -3,7 +3,7 @@
 // These tests verify TypeScript types work correctly using @ts-expect-error annotations //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-import type { ClientContract } from "@zenstackhq/orm"
+import { ZenStackClient, type ClientContract } from "@zenstackhq/orm"
 import { useClientQueries } from "../src/index"
 import { schema, type SchemaType } from "./schemas/basic/schema-lite"
 import { schema as proceduresSchema } from "./schemas/procedures/schema-lite"
@@ -183,10 +183,10 @@ client.user.useDeleteMany().mutate({ where: { email: "test@example.com" } })
 // Delegate model operations
 // ============================================================================
 
-// @ts-expect-error delegate model - useCreate is ineligible
+// @ts-expect-error delegate model - useCreate is ineligible for models that don't allow create
 client.foo.useCreate()
 
-client.foo.useUpdate()
+client.foo.useFindMany()
 client.bar.useCreate()
 
 // ============================================================================
@@ -223,22 +223,23 @@ type SumUseQuery = SumHooks["useQuery"]
 // ============================================================================
 
 // Simulate a server client type with a computed "fullName" field on User
-type DbType = ClientContract<
-  SchemaType,
-  any,
-  any,
-  any,
-  {
-    user: {
-      fullName: {
-        needs: { email: true; name: true }
-        compute: (user: { email: string; name: string | null }) => string
-      }
-    }
-  }
->
+import { definePlugin } from "@zenstackhq/orm"
 
-const extClient = useClientQueries<DbType>(schema)
+const _dbWithPlugin = new ZenStackClient(schema, { dialect: {} as any }).$use(
+  definePlugin(schema, {
+    id: "display",
+    result: {
+      user: {
+        fullName: {
+          needs: { email: true, name: true },
+          compute: (user) => `${user.email} ${user.name}`,
+        },
+      },
+    },
+  }),
+)
+
+const extClient = useClientQueries<typeof _dbWithPlugin>(schema)
 
 // Computed field is present in default results
 check(extClient.user.useFindMany().data.value?.[0]?.fullName.toUpperCase())
@@ -265,16 +266,14 @@ check(client.user.useFindMany().data.value?.[0]?.fullName)
 // Slicing - Model filtering
 // ============================================================================
 
-type SlicedModelsDb = ClientContract<
-  SchemaType,
-  {
-    slicing: {
-      includedModels: ["User", "Post"]
-    }
-  }
->
+const _slicedModelsDb = new ZenStackClient(schema, {
+  dialect: {} as any,
+  slicing: {
+    includedModels: ["User", "Post"],
+  },
+})
 
-const slicedModelsClient = useClientQueries<SlicedModelsDb>(schema)
+const slicedModelsClient = useClientQueries<typeof _slicedModelsDb>(schema)
 
 check(slicedModelsClient.user.useFindMany())
 check(slicedModelsClient.post.useFindMany())
@@ -285,20 +284,18 @@ check(slicedModelsClient.category)
 // Slicing - Operation filtering
 // ============================================================================
 
-type SlicedOpsDb = ClientContract<
-  SchemaType,
-  {
-    slicing: {
-      models: {
-        user: {
-          includedOperations: ["findUnique", "findMany", "update"]
-        }
-      }
-    }
-  }
->
+const _slicedOpsDb = new ZenStackClient(schema, {
+  dialect: {} as any,
+  slicing: {
+    models: {
+      user: {
+        includedOperations: ["findUnique", "findMany", "update"],
+      },
+    },
+  },
+})
 
-const slicedOpsClient = useClientQueries<SlicedOpsDb>(schema)
+const slicedOpsClient = useClientQueries<typeof _slicedOpsDb>(schema)
 
 check(slicedOpsClient.user.useFindUnique({ where: { id: "1" } }))
 check(slicedOpsClient.user.useFindMany())
@@ -310,17 +307,16 @@ check(slicedOpsClient.user.useFindFirst())
 // Slicing - Procedure filtering
 // ============================================================================
 
-type SlicedProcsDb = ClientContract<
-  typeof proceduresSchema,
-  {
-    slicing: {
-      includedProcedures: ["greet", "sum"]
-      excludedProcedures: ["sum"]
-    }
-  }
->
+const _slicedProcsDb = new ZenStackClient(proceduresSchema, {
+  dialect: {} as any,
+  procedures: {} as any,
+  slicing: {
+    includedProcedures: ["greet", "sum"],
+    excludedProcedures: ["sum"],
+  },
+})
 
-const slicedProcsClient = useClientQueries<SlicedProcsDb>(proceduresSchema)
+const slicedProcsClient = useClientQueries<typeof _slicedProcsDb>(proceduresSchema)
 
 check(slicedProcsClient.$procs.greet.useQuery())
 // @ts-expect-error sum excluded from sliced procedures

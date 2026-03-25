@@ -3,11 +3,12 @@ import type { FetchFn } from "@zenstackhq/client-helpers/fetch"
 import type {
   GetProcedureNames,
   GetSlicedOperations,
-  OperationsIneligibleForDelegateModels,
+  ModelAllowsCreate,
+  OperationsRequiringCreate,
   ProcedureFunc,
   QueryOptions,
 } from "@zenstackhq/orm"
-import type { GetModels, IsDelegateModel, SchemaDef } from "@zenstackhq/schema"
+import type { GetModels, SchemaDef } from "@zenstackhq/schema"
 
 /**
  * Context type for configuring the hooks.
@@ -59,14 +60,14 @@ export type ExtraMutationOptions = {
   optimisticDataProvider?: OptimisticDataProvider
 } & QueryContext
 
-type HooksOperationsIneligibleForDelegateModels = OperationsIneligibleForDelegateModels extends any
-  ? `use${Capitalize<OperationsIneligibleForDelegateModels>}`
+type HooksOperationsRequiringCreate = OperationsRequiringCreate extends any
+  ? `use${Capitalize<OperationsRequiringCreate>}`
   : never
 
 type Modifiers = "" | "Infinite"
 
 /**
- * Trim CRUD operation hooks to include only eligible operations based on slicing options.
+ * Trim CRUD operation hooks to include only eligible operations.
  */
 export type TrimSlicedOperations<
   Schema extends SchemaDef,
@@ -75,11 +76,11 @@ export type TrimSlicedOperations<
   T extends Record<string, unknown>,
 > = {
   [Key in keyof T as Key extends `use${Modifiers}${Capitalize<GetSlicedOperations<Schema, Model, Options>>}`
-    ? IsDelegateModel<Schema, Model> extends true
-      ? Key extends HooksOperationsIneligibleForDelegateModels
+    ? ModelAllowsCreate<Schema, Model> extends true
+      ? Key
+      : Key extends HooksOperationsRequiringCreate
         ? never
         : Key
-      : Key
     : never]: T[Key]
 }
 
