@@ -3,8 +3,9 @@
 // These tests verify TypeScript types work correctly using @ts-expect-error annotations //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+import { ZenStackClient, type ClientContract } from "@zenstackhq/orm"
 import { useClientQueries } from "../src/index"
-import { schema } from "./schemas/basic/schema-lite"
+import { schema, type SchemaType } from "./schemas/basic/schema-lite"
 import { schema as proceduresSchema } from "./schemas/procedures/schema-lite"
 
 const client = useClientQueries(schema)
@@ -182,10 +183,10 @@ client.user.useDeleteMany().mutate({ where: { email: "test@example.com" } })
 // Delegate model operations
 // ============================================================================
 
-// @ts-expect-error delegate model - useCreate is ineligible
+// @ts-expect-error delegate model - useCreate is ineligible for models that don't allow create
 client.foo.useCreate()
 
-client.foo.useUpdate()
+client.foo.useFindMany()
 client.bar.useCreate()
 
 // ============================================================================
@@ -216,3 +217,107 @@ proceduresClient.$procs.sum
 type SumHooks = (typeof proceduresClient.$procs)["sum"]
 // @ts-expect-error useQuery should not be a property of mutation procedures
 type SumUseQuery = SumHooks["useQuery"]
+
+// ============================================================================
+// Computed fields via ClientContract type (ExtResult)
+// ============================================================================
+
+// Simulate a server client type with a computed "fullName" field on User
+import { definePlugin } from "@zenstackhq/orm"
+
+const _dbWithPlugin = new ZenStackClient(schema, { dialect: {} as any }).$use(
+  definePlugin(schema, {
+    id: "display",
+    result: {
+      user: {
+        fullName: {
+          needs: { email: true, name: true },
+          compute: (user) => `${user.email} ${user.name}`,
+        },
+      },
+    },
+  }),
+)
+
+const extClient = useClientQueries<typeof _dbWithPlugin>(schema)
+
+// Computed field is present in default results
+check(extClient.user.useFindMany().data.value?.[0]?.fullName.toUpperCase())
+check(extClient.user.useFindFirst().data.value?.fullName.toUpperCase())
+check(extClient.user.useFindUnique({ where: { id: "1" } }).data.value?.fullName.toUpperCase())
+
+// Computed field is selectable
+check(extClient.user.useFindFirst({ select: { fullName: true } }).data.value?.fullName)
+
+// @ts-expect-error non-selected field excluded when selecting computed field only
+check(extClient.user.useFindFirst({ select: { fullName: true } }).data.value?.email)
+
+// Computed field in mutation results
+extClient.user
+  .useCreate()
+  .mutateAsync({ data: { email: "test@example.com" } })
+  .then((d) => check(d.fullName))
+
+// Plain client (no ExtResult) should NOT have computed fields
+// @ts-expect-error fullName doesn't exist without ExtResult
+check(client.user.useFindMany().data.value?.[0]?.fullName)
+
+// ============================================================================
+// Slicing - Model filtering
+// ============================================================================
+
+const _slicedModelsDb = new ZenStackClient(schema, {
+  dialect: {} as any,
+  slicing: {
+    includedModels: ["User", "Post"],
+  },
+})
+
+const slicedModelsClient = useClientQueries<typeof _slicedModelsDb>(schema)
+
+check(slicedModelsClient.user.useFindMany())
+check(slicedModelsClient.post.useFindMany())
+// @ts-expect-error category not included in sliced models
+check(slicedModelsClient.category)
+
+// ============================================================================
+// Slicing - Operation filtering
+// ============================================================================
+
+const _slicedOpsDb = new ZenStackClient(schema, {
+  dialect: {} as any,
+  slicing: {
+    models: {
+      user: {
+        includedOperations: ["findUnique", "findMany", "update"],
+      },
+    },
+  },
+})
+
+const slicedOpsClient = useClientQueries<typeof _slicedOpsDb>(schema)
+
+check(slicedOpsClient.user.useFindUnique({ where: { id: "1" } }))
+check(slicedOpsClient.user.useFindMany())
+check(slicedOpsClient.user.useUpdate())
+// @ts-expect-error findFirst not included in sliced operations
+check(slicedOpsClient.user.useFindFirst())
+
+// ============================================================================
+// Slicing - Procedure filtering
+// ============================================================================
+
+const _slicedProcsDb = new ZenStackClient(proceduresSchema, {
+  dialect: {} as any,
+  procedures: {} as any,
+  slicing: {
+    includedProcedures: ["greet", "sum"],
+    excludedProcedures: ["sum"],
+  },
+})
+
+const slicedProcsClient = useClientQueries<typeof _slicedProcsDb>(proceduresSchema)
+
+check(slicedProcsClient.$procs.greet.useQuery())
+// @ts-expect-error sum excluded from sliced procedures
+check(slicedProcsClient.$procs.sum)
