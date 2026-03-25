@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.2...v0.2.3) (2026-03-25)
+
+
+### Features
+
+* add computed fields support via ExtResult ([#64](https://github.com/genu/zenstack-pinia-colada/issues/64)) ([ff203eb](https://github.com/genu/zenstack-pinia-colada/commit/ff203ebbedebbc84e069a7304dc68accd932f7e0))
+
 ## [0.2.2](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.1...v0.2.2) (2026-03-06)
 
 
