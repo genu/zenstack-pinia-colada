@@ -68,7 +68,7 @@
     "tsdown": "0.21.5",
     "typescript": "5.9.3",
     "vitest": "4.0.18",
-    "vue": "3.5.30"
+    "vue": "3.5.31"
   },
   "peerDependencies": {
     "@pinia/colada": ">=0.10.0 <1.0.0",
