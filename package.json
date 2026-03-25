@@ -53,7 +53,7 @@
     "prepack": "pnpm run build"
   },
   "devDependencies": {
-    "@pinia/colada": "0.21.7",
+    "@pinia/colada": "1.0.0",
     "@types/node": "25.3.5",
     "@zenstackhq/client-helpers": "3.4.6",
     "@zenstackhq/common-helpers": "3.4.6",
