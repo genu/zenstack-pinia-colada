@@ -59,7 +59,7 @@
     "@zenstackhq/common-helpers": "3.5.1",
     "@zenstackhq/orm": "3.5.1",
     "@zenstackhq/schema": "3.5.1",
-    "eslint": "10.0.3",
+    "eslint": "10.1.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
     "happy-dom": "20.8.3",
