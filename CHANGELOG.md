@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.3...v0.2.4) (2026-03-26)
+
+
+### Bug Fixes
+
+* tighten peer dependency ranges for @zenstackhq/* packages ([#74](https://github.com/genu/zenstack-pinia-colada/issues/74)) ([af255c1](https://github.com/genu/zenstack-pinia-colada/commit/af255c16368838503fab58678817da522f7049fb)), closes [#73](https://github.com/genu/zenstack-pinia-colada/issues/73)
+
 ## [0.2.3](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.2...v0.2.3) (2026-03-25)
 
 
