@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.4...v0.2.5) (2026-03-30)
+
+
+### Bug Fixes
+
+* **ci:** use PR-based prepare-release workflow ([#79](https://github.com/genu/zenstack-pinia-colada/issues/79)) ([c5482be](https://github.com/genu/zenstack-pinia-colada/commit/c5482befba5c0a21ed3e6a41c856da8432ef80b0))
+
 ## [0.2.4](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.3...v0.2.4) (2026-03-26)
 
 
