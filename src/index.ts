@@ -510,8 +510,8 @@ export function useInternalInfiniteQuery<TQueryFnData>(
       key: queryKey,
       initialPageParam: toValue(argsValue),
       ...optionsValue,
-      query: ({ signal }: any) => {
-        const reqUrl = makeUrl(endpoint, model, operation, argsValue)
+      query: ({ signal, pageParam }: any) => {
+        const reqUrl = makeUrl(endpoint, model, operation, pageParam ?? argsValue)
         return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
       },
     }
