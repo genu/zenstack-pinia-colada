@@ -30,9 +30,8 @@
       "matchPackageNames": ["vitest", "happy-dom"]
     },
     {
-      "description": "Automerge patch updates for dev dependencies",
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["patch"],
+      "description": "Automerge minor and patch updates",
+      "matchUpdateTypes": ["minor", "patch"],
       "automerge": true
     }
   ]
