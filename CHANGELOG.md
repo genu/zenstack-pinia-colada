@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.5...v0.2.6) (2026-04-16)
+
+
+### Bug Fixes
+
+* use pageParam in useInternalInfiniteQuery ([#97](https://github.com/genu/zenstack-pinia-colada/issues/97)) ([10f2b8e](https://github.com/genu/zenstack-pinia-colada/commit/10f2b8e4e5f3b36a2b6cad22f1cfd889d13a9987)), closes [#95](https://github.com/genu/zenstack-pinia-colada/issues/95)
+
 ## [0.2.5](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.4...v0.2.5) (2026-03-30)
 
 
