@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@pinia/colada':
-        specifier: 1.1.0
-        version: 1.1.0(pinia@3.0.4(typescript@6.0.3)(vue@3.5.32(typescript@6.0.3)))(vue@3.5.32(typescript@6.0.3))
+        specifier: 1.2.0
+        version: 1.2.0(pinia@3.0.4(typescript@6.0.3)(vue@3.5.32(typescript@6.0.3)))(vue@3.5.32(typescript@6.0.3))
       '@types/node':
         specifier: 25.6.0
         version: 25.6.0
@@ -337,8 +337,8 @@ packages:
   '@paralleldrive/cuid2@2.3.1':
     resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
 
-  '@pinia/colada@1.1.0':
-    resolution: {integrity: sha512-GoTOlaDuQuF+9Lj5MbY2oOOZeJSP/I0U9/+Ugo5nfCymlWSyjFFjE7QcHageNL7tQr+tfepb13ks8+qO6uSV/A==}
+  '@pinia/colada@1.2.0':
+    resolution: {integrity: sha512-uEi4BtAQIn3AmlYvIYblJJIIJpNriwBwNFWkpTvSXBwqCZmQPiDjpv0GngFjuvq4ewdY6IMTvpIlec6tzydqog==}
     peerDependencies:
       pinia: ^2.2.6 || ^3.0.0
       vue: ^3.5.17
@@ -1705,7 +1705,7 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.8.0
 
-  '@pinia/colada@1.1.0(pinia@3.0.4(typescript@6.0.3)(vue@3.5.32(typescript@6.0.3)))(vue@3.5.32(typescript@6.0.3))':
+  '@pinia/colada@1.2.0(pinia@3.0.4(typescript@6.0.3)(vue@3.5.32(typescript@6.0.3)))(vue@3.5.32(typescript@6.0.3))':
     dependencies:
       pinia: 3.0.4(typescript@6.0.3)(vue@3.5.32(typescript@6.0.3))
       vue: 3.5.32(typescript@6.0.3)
