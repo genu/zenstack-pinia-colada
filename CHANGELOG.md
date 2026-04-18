@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.6...v0.2.7) (2026-04-18)
+
+
+### Bug Fixes
+
+* resolve useInfiniteFindMany crash with @pinia/colada &gt;= 1.2.0 ([#103](https://github.com/genu/zenstack-pinia-colada/issues/103)) ([c881788](https://github.com/genu/zenstack-pinia-colada/commit/c88178805644a95f7b77b8356816cca99936f96f))
+
 ## [0.2.6](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.5...v0.2.6) (2026-04-16)
 
 
