@@ -502,7 +502,7 @@ export function useInternalInfiniteQuery<TQueryFnData>(
     return getQueryKey(model, operation, argsValue, { infinite: true, optimisticUpdate: false })
   }
 
-  const finalOptions: any = computed(() => {
+  const finalOptions: any = () => {
     const argsValue = toValue(args)
     const optionsValue = toValue(options)
 
@@ -515,7 +515,7 @@ export function useInternalInfiniteQuery<TQueryFnData>(
         return fetcher<TQueryFnData>(reqUrl, { signal }, fetch)
       },
     }
-  })
+  }
 
   return {
     queryKey,
