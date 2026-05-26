@@ -51,14 +51,13 @@ import { lowerCaseFirst } from "@zenstackhq/common-helpers"
 import {
   createInvalidator,
   createOptimisticUpdater,
-  DEFAULT_QUERY_ENDPOINT,
+  CUSTOM_PROC_ROUTE_NAME,
   type InferOptions,
   type InferSchema,
   type InvalidationPredicate,
 } from "@zenstackhq/client-helpers"
 import { fetcher, makeUrl, marshal } from "@zenstackhq/client-helpers/fetch"
 import { getAllQueries, invalidateQueriesMatchingPredicate } from "./common/client"
-import { CUSTOM_PROC_ROUTE_NAME } from "./common/constants"
 import { getQueryKey } from "./common/query-key"
 import type {
   ExtraMutationOptions,
@@ -82,6 +81,8 @@ export type { SchemaDef } from "@zenstackhq/schema"
  * @see https://github.com/genu/zenstack-pinia-colada/issues/71
  */
 type InferExtResult<T> = T extends ClientContract<infer _S, infer _O, infer _Q, infer _C, infer E> ? E : {}
+
+const DEFAULT_QUERY_ENDPOINT = "/api/model"
 
 export const PiniaColadaContextKey = "zenstack-pinia-colada-context"
 
