@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.7...v0.2.8) (2026-05-26)
+
+
+### Bug Fixes
+
+* Update ZenStack dependencies to v3.7.1 ([#135](https://github.com/genu/zenstack-pinia-colada/issues/135)) ([5afada5](https://github.com/genu/zenstack-pinia-colada/commit/5afada5cb2cc22fc4a48c4d08d62268c4c4bde8a))
+
 ## [0.2.7](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.6...v0.2.7) (2026-04-18)
 
 
