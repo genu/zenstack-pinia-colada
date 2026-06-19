@@ -65,7 +65,7 @@
     "happy-dom": "20.10.2",
     "pinia": "3.0.4",
     "prettier": "3.8.4",
-    "tsdown": "0.22.2",
+    "tsdown": "0.22.3",
     "typescript": "6.0.3",
     "vitest": "4.1.8",
     "vue": "3.5.38"
