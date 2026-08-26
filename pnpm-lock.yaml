@@ -15,17 +15,17 @@ importers:
         specifier: 25.9.5
         version: 25.9.5
       '@zenstackhq/client-helpers':
-        specifier: 3.9.1
-        version: 3.9.1(zod@4.1.12)
+        specifier: 3.9.2
+        version: 3.9.2(zod@4.1.12)
       '@zenstackhq/common-helpers':
-        specifier: 3.9.1
-        version: 3.9.1
+        specifier: 3.9.2
+        version: 3.9.2
       '@zenstackhq/orm':
-        specifier: 3.9.1
-        version: 3.9.1(zod@4.1.12)
+        specifier: 3.9.2
+        version: 3.9.2(zod@4.1.12)
       '@zenstackhq/schema':
-        specifier: 3.9.1
-        version: 3.9.1
+        specifier: 3.9.2
+        version: 3.9.2
       eslint:
         specifier: 10.9.1
         version: 10.9.1
@@ -775,14 +775,14 @@ packages:
   '@yuku-toolchain/types@0.8.1':
     resolution: {integrity: sha512-HcGEV3kOn9evBTm2ARYOFNKAI7sY9twQozCVd9EVdlsBlnKi0a2iv8xXxYVHFCBQpX3SvvPXBhk8lcK6NUTdNg==}
 
-  '@zenstackhq/client-helpers@3.9.1':
-    resolution: {integrity: sha512-I/8ImYpSv+jzMF5ZrXka6tDxwEl/Xv6C4CX27ZJWpOrqaYoBjJ2qHLMaP1A4ybM0r8gztG8A0qoruFhOz3uvcQ==}
+  '@zenstackhq/client-helpers@3.9.2':
+    resolution: {integrity: sha512-bYbOw3qBSbi/uU8Z+tt1fggUs4TOZs4X7LW2qHW0gzy41pvxYYwTMp/M13dOL5R336DN/NnA5MlfgwbLzeIoGw==}
 
-  '@zenstackhq/common-helpers@3.9.1':
-    resolution: {integrity: sha512-tkG/BTSzURX2mH7wpBdt/v0u1PmbijGr+pWQQKDOqfvcYiFbsgk6zWgd44VozhB/JdWKG0asFSTNPne32bhOVQ==}
+  '@zenstackhq/common-helpers@3.9.2':
+    resolution: {integrity: sha512-YdND/rZodo+4dbjEbNQIEwCUU69hBdGo/9U7RJkZMB/2Th6Qs2KtUBnDo4RQC4vH27QQr38FArxEIMWmjxkhSw==}
 
-  '@zenstackhq/orm@3.9.1':
-    resolution: {integrity: sha512-EFRE45oJu9NllKRznwL6rwXjHoaAYXzfac+n0V+3oa+oR5S06NS52lSY2G3Rk/fcXJ7ceigP5wr1AKnYVto9sA==}
+  '@zenstackhq/orm@3.9.2':
+    resolution: {integrity: sha512-5LmK3MTtcoyabSVfmzjegxVwlZJFn5+d43MV9l1fTdVsYcCOVYQ+J7KkKIhDgq4a3l6gQpZx+AmrhNS+aE8lKw==}
     peerDependencies:
       better-sqlite3: ^12.5.0
       mysql2: ^3.16.1
@@ -799,11 +799,11 @@ packages:
       sql.js:
         optional: true
 
-  '@zenstackhq/schema@3.9.1':
-    resolution: {integrity: sha512-wYgHDVb9A6+gRRGD8aC0VdDjpHd5ZU0K22kkE7UR9a3gQ1SqS3F1Mo6rmR7Gk/b7FnFvj8+/XaMryzSrftgc3Q==}
+  '@zenstackhq/schema@3.9.2':
+    resolution: {integrity: sha512-oLXhnkfUEZ69WTXd3npGoUdYq3g0oRxz9cNKtjyFaF7YUP71tcTNIP6SU3GuIL+UJYqaFzBQdosqW/J9AC9oeA==}
 
-  '@zenstackhq/zod@3.9.1':
-    resolution: {integrity: sha512-tD37PWDky0gg6QYMQvE3G7UrF85bTEyoV07YNihUJZjn5896XcXeLXDLhOxnOXAKUA9zw7wgqICoxZfYA3DN3g==}
+  '@zenstackhq/zod@3.9.2':
+    resolution: {integrity: sha512-qmk64kJ+TtYLtGvI3MjKbsZ68jx0mc7+dFwy7KvSWJ7/s85YPM3/jQeHVlX5kr/j2WwwmIQVfF19Ip9hJGxdnA==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -2098,11 +2098,11 @@ snapshots:
 
   '@yuku-toolchain/types@0.8.1': {}
 
-  '@zenstackhq/client-helpers@3.9.1(zod@4.1.12)':
+  '@zenstackhq/client-helpers@3.9.2(zod@4.1.12)':
     dependencies:
-      '@zenstackhq/common-helpers': 3.9.1
-      '@zenstackhq/orm': 3.9.1(zod@4.1.12)
-      '@zenstackhq/schema': 3.9.1
+      '@zenstackhq/common-helpers': 3.9.2
+      '@zenstackhq/orm': 3.9.2(zod@4.1.12)
+      '@zenstackhq/schema': 3.9.2
       decimal.js: 10.6.0
       superjson: 2.2.6
     transitivePeerDependencies:
@@ -2112,14 +2112,14 @@ snapshots:
       - sql.js
       - zod
 
-  '@zenstackhq/common-helpers@3.9.1': {}
+  '@zenstackhq/common-helpers@3.9.2': {}
 
-  '@zenstackhq/orm@3.9.1(zod@4.1.12)':
+  '@zenstackhq/orm@3.9.2(zod@4.1.12)':
     dependencies:
       '@paralleldrive/cuid2': 2.3.1
-      '@zenstackhq/common-helpers': 3.9.1
-      '@zenstackhq/schema': 3.9.1
-      '@zenstackhq/zod': 3.9.1(zod@4.1.12)
+      '@zenstackhq/common-helpers': 3.9.2
+      '@zenstackhq/schema': 3.9.2
+      '@zenstackhq/zod': 3.9.2(zod@4.1.12)
       cuid: 3.0.0
       decimal.js: 10.6.0
       json-stable-stringify: 1.3.0
@@ -2133,13 +2133,13 @@ snapshots:
       zod: 4.1.12
       zod-validation-error: 4.0.2(zod@4.1.12)
 
-  '@zenstackhq/schema@3.9.1':
+  '@zenstackhq/schema@3.9.2':
     dependencies:
       decimal.js: 10.6.0
 
-  '@zenstackhq/zod@3.9.1(zod@4.1.12)':
+  '@zenstackhq/zod@3.9.2(zod@4.1.12)':
     dependencies:
-      '@zenstackhq/schema': 3.9.1
+      '@zenstackhq/schema': 3.9.2
       decimal.js: 10.6.0
       zod: 4.1.12
 
