@@ -72,10 +72,10 @@
   },
   "peerDependencies": {
     "@pinia/colada": ">=0.10.0",
-    "@zenstackhq/client-helpers": ">=3.5.1",
-    "@zenstackhq/common-helpers": ">=3.5.1",
-    "@zenstackhq/orm": ">=3.5.1",
-    "@zenstackhq/schema": ">=3.5.1",
+    "@zenstackhq/client-helpers": ">=3.7.0",
+    "@zenstackhq/common-helpers": ">=3.7.0",
+    "@zenstackhq/orm": ">=3.7.0",
+    "@zenstackhq/schema": ">=3.7.0",
     "pinia": "^3.0.0",
     "vue": "^3.0.0"
   },
