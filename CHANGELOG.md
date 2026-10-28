@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.8...v0.3.0) (2026-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* ZenStack packages older than 3.7.0 are no longer supported.
+
+### Features
+
+* require zenstack peer dependencies &gt;=3.7.0 ([#250](https://github.com/genu/zenstack-pinia-colada/issues/250)) ([df15a84](https://github.com/genu/zenstack-pinia-colada/commit/df15a84b8d1be5a7d31ea850b17940baee7cebe5))
+
 ## [0.2.8](https://github.com/genu/zenstack-pinia-colada/compare/v0.2.7...v0.2.8) (2026-05-26)
 
 
